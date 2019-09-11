@@ -1,5 +1,5 @@
 ## ANALYSIS OF BIG HEALTHCARE DATABASES
-### Rebecca Hubbard, PhD
+### [Rebecca Hubbard, PhD](https://www.med.upenn.edu/ehr-stats)
 
 ### OVERVIEW
 
