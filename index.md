@@ -8,12 +8,18 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 ### COURSE MATERIALS
 
 **Slides**
+
 **[References](EHR_Short_Course_References.pdf)**
+
 **Materials for exercises**
+
 **Worked exercises (pdf/html)**
+
 * R code
+
 * Data sets
-  * Encounter data
-  * Lab data
-  * Measures data
-  * Prescription medication data
+
+ * Encounter data 
+ * Lab data
+ * Measures data
+ * Prescription medication data
