@@ -18,7 +18,7 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 * [R code](EHR_ShortCourse_Exercises_Code.R)
 
 * Data sets
-  * [Encounter data](encounter.csv) 
-  * Measures data
-  * Prescription medication data
+  * [Encounter data](/data/encounter.csv) 
+  * [Measures data](/data/measures.csv)
+  * [Prescription medication data](/data/meds.csv)
   * [Validation data](/data/validation.csv)
