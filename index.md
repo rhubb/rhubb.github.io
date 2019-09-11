@@ -1,4 +1,4 @@
-#### ANALYSIS OF BIG HEALTHCARE DATABASES
+## ANALYSIS OF BIG HEALTHCARE DATABASES
 ### Rebecca Hubbard, PhD
 
 ### OVERVIEW
@@ -8,7 +8,7 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 ### COURSE MATERIALS
 
 **Slides**
-**References**
+**[References](EHR_Short_Course_References.pdf)**
 **Materials for exercises**
 **Worked exercises (pdf/html)**
 * R code
