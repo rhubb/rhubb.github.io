@@ -7,7 +7,7 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 ### COURSE MATERIALS
 
-**Slides**
+**[Slides](/slides/COC_EHR_Traveling_Course.pdf)**
 
 **[References](EHR_Short_Course_References.pdf)**
 
