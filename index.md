@@ -13,7 +13,9 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 **Materials for exercises**
 
-* Worked exercises ([pdf](Analysis_of_Big_Healthcare_Databases-Exercises.pdf)/[html](EHR_ShortCourse_Exercises.html))
+* Exercises ([pdf](Analysis_of_Big_Healthcare_Databases-Exercises.pdf)/[html](EHR_ShortCourse_Exercises.html))
+
+* Worked exercises ([pdf](Analysis_of_Big_Healthcare_Databases-Exercises_Worked.pdf)/[html](EHR_ShortCourse_Exercises_Worked.html))
 
 * [R code](EHR_ShortCourse_Exercises_Code.R)
 
