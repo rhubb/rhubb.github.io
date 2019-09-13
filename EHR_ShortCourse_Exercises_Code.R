@@ -41,6 +41,9 @@ library(gee)
 
 summary(measures)
 
+# check types of measures available
+unique(measures$measuretype)
+
 # separate variables by measurement type
 height <- measures[measures$measuretype == "height",-4]
 names(height) <- c("patientid","servicedate","height")
@@ -90,7 +93,7 @@ weight$weight <- ifelse(weight$weight < 0, NA, weight$weight)
 
 # identify patients with extreme heights and weights
 
-extreme.heights <- weight$patientid[height$height < 100] # flag patients with height < 1 m
+extreme.heights <- height$patientid[height$height < 100] # flag patients with height < 1 m
 extreme.weights <- weight$patientid[weight$weight > 200] # flag patients with weight > 200 kg
 
 # implausible patterns in longitudinal measurements provide an additional means of identifying data errors
@@ -421,11 +424,11 @@ summary(chol.mod2)
 ##-------------------------------------------------------------
 ## 4. Confounding by Utilization Intensity
 
-## Analyze association between BMI and T2DM with and without conditioning on visit intensity
+## Analyze association between depression and T2DM with and without conditioning on visit intensity
 dep.glm1 <- glm(T2DMcart.class ~ firstage + factor(race) + gender + dep, data = data1, family = "binomial")
 summary(dep.glm1)
 
-dep.glm2 <- glm(T2DMcart.class ~ firstage + factor(race) + gender + numvisit + dep, data = data1, family = "binomial")
+dep.glm2 <- glm(T2DMcart.class ~ firstage + factor(race) + gender + dep + numvisit, data = data1, family = "binomial")
 summary(dep.glm2)
 
 # compare odds ratios before and after adjustment
@@ -443,7 +446,7 @@ sens
 spec <- 1-mean(as.numeric(as.character(data1$T2DMcart.class[data1$T2DMv == 0 & !is.na(data1$T2DMv)])))
 spec
 
-# compute odds ratios
+# compute odds ratios based on 2x2 table
 a <- sum(data1$T2DMcart.class == 1 & data1$dep == 1)
 b <- sum(data1$T2DMcart.class == 0 & data1$dep == 1)
 c <- sum(data1$T2DMcart.class == 1 & data1$dep == 0)

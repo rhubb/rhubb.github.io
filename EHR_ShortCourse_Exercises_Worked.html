@@ -245,7 +245,7 @@ $(document).ready(function () {
 <div id="introduction" class="section level4">
 <h4>Introduction</h4>
 <p>The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the short course to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course I will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.</p>
-<p>The synthetic data we will be working with is based on the PEDSnet study of pediatric type 2 diabetes described in class. The data are divided into four files which can be downloaded from GitHub. The four files contain data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. The four files can be linked using the variable patientid.</p>
+<p>The synthetic data we will be working with are based on the PEDSnet study of pediatric type 2 diabetes described in class. The data are divided into four files which can be downloaded from GitHub. The four files contain data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. The four files can be linked using the variable patientid.</p>
 </div>
 <div id="encounter-data" class="section level4">
 <h4>Encounter data</h4>
@@ -294,7 +294,7 @@ $(document).ready(function () {
 <div id="install-r-packages" class="section level4">
 <h4>Install R packages</h4>
 <ul>
-<li>For these exercises you will need the <em>rpart</em>, <em>pROC</em> <em>boot</em>, and <em>gee</em> packages.</li>
+<li>For these exercises you will need the <em>rpart</em>, <em>pROC</em>, <em>boot</em>, and <em>gee</em> packages.</li>
 <li>If you have not already, please install these packages now.</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;rpart&quot;</span>)
@@ -320,6 +320,10 @@ $(document).ready(function () {
 ##  3rd Qu.:773212   2009-06-04:   35   3rd Qu.:163.68   weight :30484  
 ##  Max.   :999973   2009-08-03:   35   Max.   :935.96                  
 ##                   (Other)   :74175</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># check types of measures available</span>
+<span class="kw">unique</span>(measures<span class="op">$</span>measuretype)</code></pre></div>
+<pre><code>## [1] height  weight  hba1c   chol    glucose
+## Levels: chol glucose hba1c height weight</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># separate variables by measurement type</span>
 height &lt;-<span class="st"> </span>measures[measures<span class="op">$</span>measuretype <span class="op">==</span><span class="st"> &quot;height&quot;</span>,<span class="op">-</span><span class="dv">4</span>]
 <span class="kw">names</span>(height) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;patientid&quot;</span>,<span class="st">&quot;servicedate&quot;</span>,<span class="st">&quot;height&quot;</span>)
@@ -391,7 +395,7 @@ weight<span class="op">$</span>weight &lt;-<span class="st"> </span><span class=
 
 <span class="co"># identify patients with extreme heights and weights</span>
 
-extreme.heights &lt;-<span class="st"> </span>weight<span class="op">$</span>patientid[height<span class="op">$</span>height <span class="op">&lt;</span><span class="st"> </span><span class="dv">100</span>] <span class="co"># flag patients with height &lt; 1 m</span>
+extreme.heights &lt;-<span class="st"> </span>height<span class="op">$</span>patientid[height<span class="op">$</span>height <span class="op">&lt;</span><span class="st"> </span><span class="dv">100</span>] <span class="co"># flag patients with height &lt; 1 m</span>
 extreme.weights &lt;-<span class="st"> </span>weight<span class="op">$</span>patientid[weight<span class="op">$</span>weight <span class="op">&gt;</span><span class="st"> </span><span class="dv">200</span>] <span class="co"># flag patients with weight &gt; 200 kg</span>
 
 <span class="co"># implausible patterns in longitudinal measurements provide an additional means of identifying data errors</span>
@@ -894,7 +898,7 @@ chol.mod2 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.cla
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <p>4. <strong>Confounding by Utilization Intensity.</strong> Accounting for the intensity of healthcare utilization in analyses. How much variability is there in the intensity of utilization in this data set? Use a measure of intensity of utilization to account for informed presence bias in an analysis of the association between depression diagnosis and T2DM.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Analyze association between BMI and T2DM with and without conditioning on visit intensity
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Analyze association between depression and T2DM with and without conditioning on visit intensity
 dep.glm1 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.class <span class="op">~</span><span class="st"> </span>firstage <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(race) <span class="op">+</span><span class="st"> </span>gender <span class="op">+</span><span class="st"> </span>dep, <span class="dt">data =</span> data1, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
 <span class="kw">summary</span>(dep.glm1)</code></pre></div>
 <pre><code>## 
@@ -927,12 +931,12 @@ dep.glm1 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.clas
 ## AIC: 10546
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dep.glm2 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.class <span class="op">~</span><span class="st"> </span>firstage <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(race) <span class="op">+</span><span class="st"> </span>gender <span class="op">+</span><span class="st"> </span>numvisit <span class="op">+</span><span class="st"> </span>dep, <span class="dt">data =</span> data1, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dep.glm2 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.class <span class="op">~</span><span class="st"> </span>firstage <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(race) <span class="op">+</span><span class="st"> </span>gender <span class="op">+</span><span class="st"> </span>dep <span class="op">+</span><span class="st"> </span>numvisit, <span class="dt">data =</span> data1, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)
 <span class="kw">summary</span>(dep.glm2)</code></pre></div>
 <pre><code>## 
 ## Call:
 ## glm(formula = T2DMcart.class ~ firstage + factor(race) + gender + 
-##     numvisit + dep, family = &quot;binomial&quot;, data = data1)
+##     dep + numvisit, family = &quot;binomial&quot;, data = data1)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
@@ -948,8 +952,8 @@ dep.glm1 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.clas
 ## factor(race)Unknown   0.023632   0.192137   0.123    0.902    
 ## factor(race)White    -0.110363   0.141125  -0.782    0.434    
 ## genderMale           -0.264333   0.049062  -5.388 7.14e-08 ***
-## numvisit              0.278357   0.017115  16.263  &lt; 2e-16 ***
 ## depTRUE               0.249812   0.051381   4.862 1.16e-06 ***
+## numvisit              0.278357   0.017115  16.263  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -971,8 +975,8 @@ dep.glm1 &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMcart.clas
 ## factor(race)Unknown  1.0070765 1.0239131
 ## factor(race)White    0.9010242 0.8955093
 ## genderMale           0.7732437 0.7677181
-## depTRUE              1.6436087 1.3209573
-##                             NA 1.2837843</code></pre>
+## depTRUE              1.6436087 1.2837843
+##                             NA 1.3209573</code></pre>
 <p>5. <strong>Outcome Misclassification.</strong> Use the classic Magder and Hughes approach to accounting for outcome misclassification to account for phenotyping error in an analysis of the association between having a depression diagnosis code and T2DM using the CART-derived T2DM phenotype.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Analysis without additional adjustment variables
 
@@ -983,7 +987,7 @@ sens</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spec &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">-</span><span class="kw">mean</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(data1<span class="op">$</span>T2DMcart.class[data1<span class="op">$</span>T2DMv <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(data1<span class="op">$</span>T2DMv)])))
 spec</code></pre></div>
 <pre><code>## [1] 0.9317585</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># compute odds ratios</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># compute odds ratios based on 2x2 table</span>
 a &lt;-<span class="st"> </span><span class="kw">sum</span>(data1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>data1<span class="op">$</span>dep <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
 b &lt;-<span class="st"> </span><span class="kw">sum</span>(data1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>data1<span class="op">$</span>dep <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
 c &lt;-<span class="st"> </span><span class="kw">sum</span>(data1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>data1<span class="op">$</span>dep <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)
