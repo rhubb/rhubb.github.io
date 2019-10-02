@@ -7,6 +7,8 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 ### COURSE MATERIALS
 
+Participants in the ASA Council of Chapters traveling short course should download all of the files below.
+
 **[Slides](/slides/COC_EHR_Traveling_Course.pdf)**
 
 **[References](EHR_Short_Course_References.pdf)**
