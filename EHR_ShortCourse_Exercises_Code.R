@@ -170,11 +170,19 @@ glucose$glucosemax <- unsplit(sapply(split(glucose$glucose,glucose$patientid),ma
 hba1c$hba1cmean <- unsplit(sapply(split(hba1c$hba1c,hba1c$patientid),mean,na.rm = T),hba1c$patientid)
 hba1c$hba1cmax <- unsplit(sapply(split(hba1c$hba1c,hba1c$patientid),max,na.rm = T),hba1c$patientid)
 
-chol$cholmean <- unsplit(sapply(split(chol$chol,chol$patientid),mean,na.rm = T),chol$patientid)
-chol$cholmax <- unsplit(sapply(split(chol$chol,chol$patientid),max,na.rm = T),chol$patientid)
-
 encounter$agemean <- unsplit(sapply(split(encounter$age,encounter$patientid),mean,na.rm = T),encounter$patientid)
 encounter$firstage <- unsplit(sapply(split(encounter$age,encounter$patientid),min,na.rm = T),encounter$patientid)
+
+# compute elapsed time from first visit to current visit and summarize cholesterol in first year of follow-up
+encounter$basedate <- rep(encounter$servicedate[!duplicated(encounter$patientid)], time = c(table(encounter$patientid))) # date of first visit
+encounter$elapsed <- as.Date(encounter$servicedate) - as.Date(encounter$basedate)
+encounter$anyvisit1yr <- unsplit(sapply(split(encounter$elapsed,encounter$patientid), # binary indicator of any visit in first year of follow-up
+                                        function(x){sum(x[x>0] <= 365) > 0}),encounter$patientid)
+chol <- merge(chol,data.frame(patientid = encounter$patientid, basedate = encounter$basedate)[!duplicated(encounter$patientid),], 
+              all.x = TRUE, all.y = FALSE)
+chol$elapsed <- as.Date(chol$servicedate) - as.Date(chol$basedate)
+chol$cholmean1yr <- unsplit(sapply(split(data.frame(chol = chol$chol, days = chol$elapsed),chol$patientid),
+                                   function(x){mean(x$chol[x$days <= 365 & x$days > 0],na.rm = T)}),chol$patientid)
 
 # look for any occurence of diabetes diagnosis codes, insulin, metformin,
 # or visit to an endocrinologist within the period of interest
@@ -232,14 +240,15 @@ meds$anymetformin <- unsplit(sapply(split(meds$drug,meds$patientid),anycode,code
 meds$metforminfirst <- unsplit(sapply(split(data.frame(dates=meds$presdate,drugs=meds$drug),
                                             meds$patientid),codeorder),meds$patientid)
 
+
 ## Create merged dataset with one observation per patient and aggregate variables
 
-encounter1 <- encounter[!duplicated(encounter$patientid),c("patientid","agemean","firstage","race","gender","T2DM","T1DM","endo","T2DMnum","dep")]
+encounter1 <- encounter[!duplicated(encounter$patientid),c("patientid","agemean","firstage","race","gender","T2DM","T1DM","endo","T2DMnum","dep","anyvisit1yr")]
 bmi1 <- bmi[!duplicated(bmi$patientid.x),c("patientid.x","bmimean","bmimax","firstbmi")]
 names(bmi1) <- c("patientid","bmimean","bmimax","firstbmi")
 glucose1 <- glucose[!duplicated(glucose$patientid),c("patientid","glucosemean","glucosemax")]
 hba1c1 <- hba1c[!duplicated(hba1c$patientid),c("patientid","hba1cmean","hba1cmax")]
-chol1 <- chol[!duplicated(chol$patientid),c("patientid","cholmean","cholmax")]
+chol1 <- chol[!duplicated(chol$patientid),c("patientid","cholmean1yr")]
 meds1  <- meds[!duplicated(meds$patientid),c("patientid","anyinsulin","anymetformin","metforminfirst")]
 
 data1 <- Reduce(function(x,y){merge(x,y, all = T)},list(encounter1,bmi1,glucose1,hba1c1,chol1,meds1,validation))
@@ -365,8 +374,11 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will just use all available data. 
 
-# Percent missing cholesterol
-mean(is.na(data1$cholmean))
+# Percent with no cholesterol data in first year of follow-up
+mean(is.na(data1$cholmean1yr))
+
+# Percent with no visit in first year of follow-up
+mean(data1$anyvisit1yr==0)
 
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
@@ -377,49 +389,53 @@ numvisit <- encounter[!duplicated(encounter$patientid),c("patientid","numvisit")
 data1 <- merge(data1,numvisit)
 
 # Look for factors associated with missing cholesterol
-data1$misschol <- is.na(data1$cholmean)
+data1$misschol <- is.na(data1$cholmean1yr)
 misschol.mod <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1, family = binomial)
 summary(misschol.mod)
 
-# Generate probability of missingness from this model
+# probability of having an observed cholesterol measure based on single stage model
 data1$pmisschol1[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod, type = "response", data = data1)
 
-# Estimate probability of missingness using a two stage model
-# first estimate probability of missingness conditional on making an endocrinologist visit
-misschol.mod.2 <- glm(misschol ~ endo, data = data1, family = binomial)
-summary(misschol.mod.2)
+# Estimate probability of observed cholesterol using a two stage model
+# first estimate probability of having any encounter within 1 yr
+anyvisit.mod <- glm(anyvisit1yr ~ firstage + race + gender + firstbmi, data = data1, family = binomial)
+summary(anyvisit.mod)
 
-data1$pmisschol2 <- 1-predict(misschol.mod.2, type = "response")
+# probability of having an encounter
+data1$pvisit1yr[!is.na(data1$firstbmi)] <- predict(anyvisit.mod, type = "response")
 
-# next estimate probability of missingness among those with and without endocrinologist visit
-misschol.mod.20 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$endo == 0,], family = binomial)
-summary(misschol.mod.20)
+# next estimate probability of having cholesterol measurement given an encounter was observed
+misschol.mod2 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$anyvisit1yr == 1,], family = binomial)
+summary(misschol.mod2)
 
-misschol.mod.21 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$endo == 1,], family = binomial)
-summary(misschol.mod.21)
+# probability of having a choletserol measure given an encounter occurred in first year
+data1$pmisschol2[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod2, type = "response", newdata = data1[!is.na(data1$firstbmi),])
 
-data1$pmisschol20[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod.20, type = "response", newdata = data1[!is.na(data1$firstbmi),])
-data1$pmisschol21[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod.21, type = "response", newdata = data1[!is.na(data1$firstbmi),])
-
-# create combined probability of having an observed cholesterol value given these two modules
-data1$pmisschol.mod <- data1$pmisschol2*data1$pmisschol21+(1-data1$pmisschol2)*data1$pmisschol20
+# create combined probability of having an observed cholesterol value using the two stage model
+data1$pmisschol.mod <- data1$pvisit1yr*data1$pmisschol2
 
 ## Compare one module and two module probabilities of being observed
 plot(data1$pmisschol1, data1$pmisschol.mod)
+abline(0,1)
 
 ## Fit regression models using IPW to account for missingness in cholesterol
 
 # Model using 1 step weights
-data1$w1 <- 1/data1$pmisschol1
-data1$w1 <- sum(!is.na(data1$w1))*data1$w1/sum(data1$w1,na.rm = T) # normalize weights to maintain sample size
-chol.mod1 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean, data = data1, weights = w1, family = "binomial")
+data1$w1 <- 1/(1-data1$pmisschol1) # inverse probability of missing cholesterol
+data1$w1[!is.na(data1$cholmean1yr)] <- sum(!is.na(data1$cholmean1yr))*data1$w1[!is.na(data1$cholmean1yr)]/
+  sum(data1$w1[!is.na(data1$cholmean1yr)],na.rm = T) # normalize weights to maintain sample size
+chol.mod1 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean1yr, data = data1, weights = w1, family = "binomial")
 summary(chol.mod1)
 
 # Model using 2 step weights
 data1$w.mod <- 1/data1$pmisschol.mod
-data1$w.mod <- sum(!is.na(data1$w.mod))*data1$w.mod/sum(data1$w.mod,na.rm = T) # normalize weights to maintain sample size
-chol.mod2 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean, data = data1, weights = w.mod, family = "binomial")
+data1$w.mod[!is.na(data1$cholmean1yr)] <- sum(!is.na(data1$cholmean1yr))*data1$w.mod[!is.na(data1$cholmean1yr)]/
+  sum(data1$w.mod[!is.na(data1$cholmean1yr)],na.rm = T) # normalize weights to maintain sample size
+chol.mod2 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean1yr, data = data1, weights = w.mod, family = "binomial")
 summary(chol.mod2)
+
+# Compare parameter estimates from the two models
+cbind(chol.mod1$coef,chol.mod2$coef)
 
 ##-------------------------------------------------------------
 ## 4. Confounding by Utilization Intensity
