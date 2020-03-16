@@ -1,20 +1,20 @@
-## R code for ENAR EHR short course tutorials
+## R code for Analysis of Big Healthcare Databases exercises
 
 ##-------------------------------------------------------------##
 ## Read in data
 ##-------------------------------------------------------------##
 
 #### Encounter data
-encounter = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/encounter.csv", head=T)
+encounter = read.csv("https://raw.githubusercontent.com/rhubb/ASA_EHR_ShortCourse/master/data/encounter.csv", head=T)
  
 #### Prescription medication data
-meds = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/meds.csv", head=T)
+meds = read.csv("https://raw.githubusercontent.com/rhubb/ASA_EHR_ShortCourse/master/data/meds.csv", head=T)
 
 #### Measures data
-measures = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/measures.csv", head=T)
+measures = read.csv("https://raw.githubusercontent.com/rhubb/ASA_EHR_ShortCourse/master/data/measures.csv", head=T)
 
 #### Validation data
-validation = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/validation.csv", head=T)
+validation = read.csv("https://raw.githubusercontent.com/rhubb/ASA_EHR_ShortCourse/master/data/validation.csv", head=T)
 
 ##-------------------------------------------------------------##
 ## Install R packages
@@ -31,15 +31,11 @@ library(boot)
 library(gee)
 
 ##-------------------------------------------------------------##
-## Tutorials
-##-------------------------------------------------------------##
-
-##-------------------------------------------------------------##
-## Tutorial 1
+## Exercises
 ##-------------------------------------------------------------##
 
 ##-------------------------------------------------------------
-## A. Data Quality Evaluation
+## 1. Data Quality Evaluation
 
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
@@ -158,7 +154,7 @@ plot(bmi$weight,bmi$bmi)
 plot(bmi$height,bmi$bmi)
 
 ##-------------------------------------------------------------
-# B. Phenotype Extraction
+# 2. Phenotype Extraction
 
 ## Aggregate data to the patient level
 
@@ -371,12 +367,9 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 # eMERGE NPV
 1 - mean(data1$T2DMv[data1$T2DMemerge == 0],na.rm = T)
 
-##-------------------------------------------------------------##
-## Tutorial 2
-##-------------------------------------------------------------##
 
 ##-------------------------------------------------------------
-## A. Missing Data
+## 3. Missing Data
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -437,7 +430,7 @@ summary(chol.mod2)
 cbind(chol.mod1$coef,chol.mod2$coef)
 
 ##-------------------------------------------------------------
-## B. Confounding by Utilization Intensity
+## 4. Confounding by Utilization Intensity
 
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
@@ -457,12 +450,8 @@ summary(dep.glm2)
 # compare odds ratios before and after adjustment
 cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
 
-##-------------------------------------------------------------##
-## Tutorial 3
-##-------------------------------------------------------------##
-
 ##-------------------------------------------------------------
-## A. Outcome Misclassification
+## 5. Outcome Misclassification
 
 ## Analysis without additional adjustment variables
 
@@ -535,7 +524,7 @@ summary(mod.valid)
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
 
 ##-------------------------------------------------------------##
-## B. Using Probabilistic Phenotypes
+## 6. Using Probabilistic Phenotypes
 
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"

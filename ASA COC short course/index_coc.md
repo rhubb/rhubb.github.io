@@ -1,4 +1,4 @@
-## Practical Solutions for Working with Electronic Health Records Data
+## ANALYSIS OF BIG HEALTHCARE DATABASES
 ### [Rebecca Hubbard, PhD](https://www.med.upenn.edu/ehr-stats)
 
 ### OVERVIEW
@@ -7,17 +7,17 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 ### COURSE MATERIALS
 
-Participants in the ENAR 2020 Short Course "Practical solutions for working with electronic health records data" should download all of the files below.
+Participants in the ASA Council of Chapters traveling short course should download all of the files below.
 
-**[Slides](/slides/ENAR_Short_Course.pdf)**
+**[Slides](/slides/COC_EHR_Traveling_Course.pdf)**
 
 **[References](EHR_Short_Course_References.pdf)**
 
 **Materials for exercises**
 
-* [Exercises](EHR_ShortCourse_Exercises.html)
+* Exercises ([pdf](Analysis_of_Big_Healthcare_Databases-Exercises.pdf)/[html](EHR_ShortCourse_Exercises.html))
 
-* [Worked exercises](EHR_ShortCourse_Exercises_Worked.html)
+* Worked exercises ([pdf](Analysis_of_Big_Healthcare_Databases-Exercises_Worked.pdf)/[html](EHR_ShortCourse_Exercises_Worked.html))
 
 * [R code](EHR_ShortCourse_Exercises_Code.R)
 
