@@ -7,7 +7,7 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 ### COURSE MATERIALS
 
-Participants in the ENAR 2020 Short Course "Practical solutions for working with electronic health records data" should download all of the files below.
+Participants in the ASA Council of Chapters traveling short course should download all of the files below.
 
 **[Slides](/slides/COC_EHR_Traveling_Course.pdf)**
 
