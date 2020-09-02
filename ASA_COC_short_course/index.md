@@ -17,11 +17,11 @@ Participants in the ASA Council of Chapters traveling short course should downlo
 
 **Materials for exercises**
 
-* [Exercises](EHR_ShortCourse_Exercises.html)
+* [Exercises](EHR_ShortCourse_Tutorials.html)
 
-* [Worked exercises](EHR_ShortCourse_Exercises_Worked.html)
+* [Worked exercises](EHR_ShortCourse_Tutorials_Worked.html)
 
-* [R code](EHR_ShortCourse_Exercises_Code.R)
+* [R code](EHR_ShortCourse_Tutorials_Code.R)
 
 * Data sets
   * [Encounter data](/data/encounter.csv) 
