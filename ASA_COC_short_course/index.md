@@ -15,11 +15,11 @@ Participants in the ASA Council of Chapters traveling short course should downlo
 
 **[References](EHR_Short_Course_References.pdf)**
 
-**Materials for exercises**
+**Materials for tutorials**
 
-* [Exercises](EHR_ShortCourse_Tutorials.html)
+* [Tutorials](EHR_ShortCourse_Tutorials.html)
 
-* [Worked exercises](EHR_ShortCourse_Tutorials_Worked.html)
+* [Worked tutorials](EHR_ShortCourse_Tutorials_Worked.html)
 
 * [R code](EHR_ShortCourse_Tutorials_Code.R)
 
