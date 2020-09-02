@@ -9,7 +9,9 @@ The widespread adoption of electronic health records (EHR) as a means of documen
 
 Participants in the ASA Council of Chapters traveling short course should download all of the files below.
 
-**[Slides](/slides/COC_EHR_Traveling_Course.pdf)**
+**[Schedule for the day](schedule.pdf)**
+
+**[Slides](COC_EHR_Traveling_Course.pdf)**
 
 **[References](EHR_Short_Course_References.pdf)**
 
@@ -17,7 +19,7 @@ Participants in the ASA Council of Chapters traveling short course should downlo
 
 * [Exercises](EHR_ShortCourse_Exercises.html)
 
-* [Worked exercises](Analysis_of_Big_Healthcare_Databases-Exercises_Worked.pdf)/[html](EHR_ShortCourse_Exercises_Worked.html)
+* [Worked exercises](EHR_ShortCourse_Exercises_Worked.html)
 
 * [R code](EHR_ShortCourse_Exercises_Code.R)
 
