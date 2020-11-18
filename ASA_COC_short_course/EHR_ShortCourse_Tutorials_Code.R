@@ -31,15 +31,11 @@ library(boot)
 library(gee)
 
 ##-------------------------------------------------------------##
-## Tutorials
+## Exercises
 ##-------------------------------------------------------------##
 
 ##-------------------------------------------------------------
-## Tutorial 1
-
-
-##-------------------------------------------------------------
-## A. Data Quality Evaluation
+## 1. Data Quality Evaluation
 
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
@@ -158,7 +154,7 @@ plot(bmi$weight,bmi$bmi)
 plot(bmi$height,bmi$bmi)
 
 ##-------------------------------------------------------------
-# B. Phenotype Extraction
+# 2. Phenotype Extraction
 
 ## Aggregate data to the patient level
 
@@ -371,11 +367,9 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 # eMERGE NPV
 1 - mean(data1$T2DMv[data1$T2DMemerge == 0],na.rm = T)
 
-##-------------------------------------------------------------
-## Tutorial 2
 
 ##-------------------------------------------------------------
-## A. Missing Data
+## 3. Missing Data
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -436,7 +430,7 @@ summary(chol.mod2)
 cbind(chol.mod1$coef,chol.mod2$coef)
 
 ##-------------------------------------------------------------
-## B. Confounding by Utilization Intensity
+## 4. Confounding by Utilization Intensity
 
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
@@ -457,7 +451,7 @@ summary(dep.glm2)
 cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
 
 ##-------------------------------------------------------------
-## C. Outcome Misclassification
+## 5. Outcome Misclassification
 
 ## Analysis without additional adjustment variables
 
@@ -529,8 +523,8 @@ summary(mod.valid)
 # Compare odds ratios from all three models
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
 
-##-------------------------------------------------------------
-## D. Using Probabilistic Phenotypes
+##-------------------------------------------------------------##
+## 6. Using Probabilistic Phenotypes
 
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"
@@ -539,7 +533,7 @@ bias.adjust.prob <- function(fmla,mu0,mu1,p0,link = "ident"){
   # regress probabilistic phenotype on predictors
   fitp = lm(fmla, data = data1)
   
-  # make bias correctioon
+  # make bias correction
   betastar = fitp$coef/(mu1 - mu0)
   
   if (link == "ident"){
