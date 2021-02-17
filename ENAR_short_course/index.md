@@ -26,6 +26,6 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 * Data sets
   * [Case study 1 data](/data/case1.csv) 
-  * [Case study 2 data](/data/cse2.csv)
+  * [Case study 2 data](/data/case2.csv)
   * [Case study 3 data](/data/meds.csv)
 

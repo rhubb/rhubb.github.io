@@ -327,7 +327,7 @@ trial: binary indicator of inclusion in single arm trial (1 = trial, 0 = EHR)
 A\. **Matching.** We will use matching to ensure similarity of trial and EHR patients on observed characteristics. 
 
 * Create a 1:1 matched sample based on Mahalanobis distance or propensity score matching. Using these methods is it possible to find a match for all patients in the trial sample?
-* Compare the distribution of patient characteristics between the trial and EHR samples before and after matching. Has matching achieved good balance on all characteristics
+* Compare the distribution of patient characteristics between the trial and EHR samples before and after matching. Has matching achieved good balance on all characteristics?
 
 ```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 # Mahalanobis matching
