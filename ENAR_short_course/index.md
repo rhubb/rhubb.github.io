@@ -18,14 +18,14 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 **Materials for exercises**
 
-* [Exercises](EHR_ShortCourse_Exercises.html)
+* [Exercises](ENAR_ShortCourse_Exercises.html)
 
 * [Worked exercises](EHR_ShortCourse_Exercises_Worked.html)
 
 * [R code](EHR_ShortCourse_Exercises_Code.R)
 
 * Data sets
-  * [Encounter data](/data/encounter.csv) 
-  * [Measures data](/data/measures.csv)
-  * [Prescription medication data](/data/meds.csv)
-  * [Validation data](/data/validation.csv)
+  * [Case study 1 data](/data/case1.csv) 
+  * [Case study 2 data](/data/cse2.csv)
+  * [Case study 3 data](/data/meds.csv)
+
