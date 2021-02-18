@@ -1,0 +1,366 @@
+---
+title: "Case Studies in Generating Real World Evidence From Real World Data - Tutorials"
+output:
+  html_document:
+    toc: false 
+    depth: 3 
+    theme: paper 
+    highlight: tango
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 400)
+```  
+
+***
+
+#### Introduction
+
+The goal of these tutorials is to explore the analysis of EHR data using simulated data sets resembling the structure of data from some real-world examples. We will implement the statistical methods described in the case studies and compare results using a few alternative methods. **Please note that the data we will be working with are simulated and intended for instructional purposes only.** Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course we will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.
+
+We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.
+
+#### Install R packages
+- For the tutorials included in this short course you will need the [_rpart_](https://cran.r-project.org/web/packages/rpart/index.html), [_pROC_](https://cran.r-project.org/web/packages/pROC/index.html), [_boot_](https://cran.r-project.org/web/packages/boot/index.html), and [_gee_](https://cran.r-project.org/web/packages/gee/index.html) packages.
+- If you have not already, please install these packages now.
+```{r, eval=FALSE}
+install.packages("rpart")
+install.packages("pROC")
+install.packages("boot")
+install.packages("gee")
+install.packages("MatchIt")
+install.packages("survival")
+install.packages("colorspace")
+library(rpart)
+library(pROC)
+library(boot)
+library(gee)
+library(MatchIt)
+library(survival)
+library(colorspace)
+```
+```{r, eval=TRUE, message = FALSE, echo = FALSE}
+library(rpart)
+library(pROC)
+library(boot)
+library(gee)
+library(MatchIt)
+library(survival)
+library(colorspace)
+```
+
+#### Tutorial 1 - Addressing phentyping error in the study of diabetes
+
+The relevant case study for this tutorial is:
+
+Kho AN et al. Use of diverse electronic medical record systems to identify genetic risk for type 2 diabetes within a genome-wide association study. Journal of the American Medical Informatics Association. 2012 Mar 1;19(2):212-8.
+
+The synthetic data we will be working with for tutorial 1 are based on the PEDSnet study of pediatric type 2 diabetes described in the lecture. This dataset includes data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. 
+
+Data have been aggregated to the level of one row per patient.
+```{r, eval = TRUE, echo = TRUE}
+case1 = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/case1.csv", head=T)
+```
+<blockquote style="font-size:12px">
+patientid:  Patient ID
+
+firstage:  Age in years at first patient encounter in database
+
+race: Provider-reported patient race
+
+gender: Patient-reported gender
+
+T2DM: any ICD-9 or ICD-10 code for T2DM
+
+T1DM: any ICD-9 or ICD-10 code for T1DM
+
+endo: any clinical encounter with an endocrinologist
+
+T2DMnum: number of T2DM codes
+
+bmimean: mean body mass index (kg/m^2)
+
+bmimax: maximum body mass index (kg/m^2)
+
+firstbmi: first body mass index (kg/m^2) captured in database
+
+glucosemean: mean glucose (mg/dl)
+
+glucosemax: maximum glucose (mg/dl)
+
+hba1cmean: mean hemoglobin A1c (%)
+
+hba1cmax: maximum hemoglobin A1c (%)
+
+anyinsulin: any insulin prescription 
+
+anymetformin: any metformin prescription 
+
+metforminfirst: metformin prescription precedes insulin prescription
+
+T2DMv: Type 2 diabetes status based on manual chart review (1 = T2DM, 0 = no evidence of T2DM)
+
+rs7903146: patient genotype (presence of 1 or more copy of the minor allele)
+
+</blockquote>
+
+A\. **Phenotype Extraction.** We will apply the eMERGE type 2 diabetes (T2DM) rule-based phenotype to this data set along with a few alternative approaches to deriving a T2DM phenotype from this data set. 
+
+* Apply the eMERGE T2DM rule to these data. Calculate the sensitivity, specificity, PPV, and NPV of this phenotype
+* Use the gold-standard phenotype labels available for a subset of the data to develop prediction models for T2DM using logistic regression and CART. How do the operating characteristics of these approaches compare to each other and to the eMERGE clinical decision rule?
+
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+## eMERGE T2DM rule
+
+T2DM.rule <- function(x){
+  if (x$T1DM ==1) T2DM <- 0
+  else{
+    if (x$T2DM ==1){
+      if (x$anyinsulin == 1){
+        if (x$anymetformin == 0){
+          if (x$T2DMnum < 2){
+            T2DM <- 0
+          } else{
+            T2DM <- 1
+          }
+        } else{
+          if (x$metforminfirst == 0){
+            T2DM <- 0
+          } else{
+            T2DM <- 1
+          }
+        }
+      } else{
+        if (x$anymetformin == 1){
+          T2DM <- 1
+        } else{
+          if ((!is.na(x$glucosemax) & x$glucosemax > 200) | (!is.na(x$hba1cmax) & x$hba1cmax > 6.5)){
+            T2DM <- 1
+          } else{
+            T2DM <- 0
+          }
+        }
+      }
+    } else{
+      if (x$anymetformin == 0){
+        T2DM <- 0
+      } else{
+        if ((!is.na(x$glucosemax) & x$glucosemax > 200) | (!is.na(x$hba1cmax) & x$hba1cmax > 6.5)){
+          T2DM <- 1
+        } else{
+          T2DM <- 0
+        }
+      }
+    }
+  }
+  return(T2DM)
+}
+
+case1$T2DMemerge <- unsplit(sapply(split(case1,case1$patientid),T2DM.rule),case1$patientid)
+
+# eMERGE specificity
+1-mean(case1$T2DMemerge[case1$T2DMv == 0 & !is.na(case1$T2DMv)])
+
+# eMERGE sensitivity
+mean(case1$T2DMemerge[case1$T2DMv == 1 & !is.na(case1$T2DMv)])
+
+# eMERGE PPV
+mean(case1$T2DMv[case1$T2DMemerge == 1],na.rm = T)
+
+# eMERGE NPV
+1 - mean(case1$T2DMv[case1$T2DMemerge == 0],na.rm = T)
+
+## Phenotyping models using gold standard labels from validation data set to construct prediction models for T2DM
+
+## Logistic regression
+
+mod.glm <- glm(T2DMv ~ T2DM + T1DM + bmimean + anyglucose + anyhba1c + anyinsulin + anymetformin, data = case1, family = "binomial")
+
+# logistic regression-based phenotype
+case1$T2DMglm <- predict(mod.glm, newdata = case1)
+
+# evaluate performance of logistic regression phenotype
+pred.glm <- na.omit(data.frame(pred = case1$T2DMglm,true = case1$T2DMv))
+perf.glm <- roc(pred.glm$true, pred.glm$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
+
+plot(perf.glm)
+
+# Logistic regression AUC
+perf.glm$auc
+
+## CART
+
+set.seed(20190805)
+mod.cart <- rpart(T2DMv ~ T2DM + T1DM  + bmimean + anyglucose + anyhba1c, data = case1, method = "class")
+mod.pruned<- prune(mod.cart, cp= mod.cart$cptable[which.min(mod.cart$cptable[,"xerror"]),"CP"])
+
+par(xpd = NA) # prevent text labels from being cut off
+plot(mod.pruned)
+text(mod.pruned)
+
+# predicted probabilities of T2DM based on CART
+case1$T2DMcart <- predict(mod.pruned, newdata = case1, type = "prob")
+
+# binary T2DM phenotype based on CART
+case1$T2DMcart.class <- as.numeric(as.character(predict(mod.pruned, newdata = case1, type = "class")))
+
+# evaluate performance of continuous CART phenotype
+pred.cart <- na.omit(data.frame(pred = case1$T2DMcart[,2],true = case1$T2DMv))
+perf.cart <- roc(pred.cart$true, pred.cart$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
+
+par(xpd = FALSE)
+plot(perf.cart)
+
+# CART AUC
+perf.cart$auc
+
+```
+
+B\. **Outcome Misclassification.** For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and genotype (rs7903146).
+
+* What is the crude odds ratios for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?
+* Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+## Analysis without additional adjustment variables
+
+# first compute sensitivity and specificity using validation data
+sens <- mean(as.numeric(as.character(case1$T2DMcart.class[case1$T2DMv == 1 & !is.na(case1$T2DMv)])))
+sens
+
+spec <- 1-mean(as.numeric(as.character(case1$T2DMcart.class[case1$T2DMv == 0 & !is.na(case1$T2DMv)])))
+spec
+
+# compute odds ratios based on 2x2 table
+a <- sum(case1$T2DMcart.class == 1 & case1$rs7903146 == 1)
+b <- sum(case1$T2DMcart.class == 0 & case1$rs7903146 == 1)
+c <- sum(case1$T2DMcart.class == 1 & case1$rs7903146 == 0)
+d <- sum(case1$T2DMcart.class == 0 & case1$rs7903146 == 0)
+
+or.std <- a*d/(b*c) # standard odds ratio
+or.mh <- (a/(a+b)-(1-spec))/(c/(c+d)-(1-spec))*(sens-c/(c+d))/(sens-a/(a+b)) # Magder and Hughes adjusted odds ratio
+
+or.std
+or.mh
+
+## Adjusted analysis via logistic regression using EM algorithm
+
+# posterior probability of Y
+post.prob <- function(phat,S,sens,spec){
+  post.probY <- ifelse(S== 1, sens*phat/(sens*phat+(1-spec)*(1-phat)),
+                       (1-spec)*phat/((1-spec)*phat+sens*(1-phat)))
+  return(post.probY)
+}
+
+# EM algorithm proposed by Magder and Hughes
+mh.EM <- function(fmla, sens, spec, tol = 10^-4, maxit = 10){
+  case1$Y <- case1$T2DMcart.class
+  or1 <- glm(fmla, data = case1, family = "binomial")
+  p0 <- predict(or1, type = "response")
+  dif <- 1
+  j <- 0
+  while (dif > tol & j < maxit){
+    w <- post.prob(p0,case1$T2DMcart.class,sens,spec)
+    data2 <- rbind(case1, case1)
+    data2$w <- c(w,1-w)
+    data2$Y <- c(rep(1,nrow(case1)),rep(0,nrow(case1)))
+    suppressWarnings(or2 <- glm(fmla, data = data2, family = "binomial", weights = w))
+    p0 <- predict(or2, type = "response", newdata = case1)
+    dif <- max(abs(or1$coef-or2$coef))
+    or1 <- or2
+    j <- j+1
+  }
+  if (dif > tol) return("Did not converge")
+  else return(or2)
+}
+
+# fit model
+fmla.gen <- formula("Y ~ firstage + factor(race) + gender + rs7903146")
+mod.MH <- mh.EM(fmla.gen, sens, spec, maxit = 100)
+summary(mod.MH)
+
+# naive model for comparison
+mod.cart <- glm(T2DMcart.class ~ firstage + factor(race) + gender + rs7903146, data = case1, family = "binomial")
+summary(mod.cart)
+
+
+# model based on validation data only
+mod.valid <- glm(T2DMv ~ firstage + factor(race) + gender + rs7903146, data = case1, family = "binomial")
+summary(mod.valid)
+
+
+# Compare odds ratios from all three models
+data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
+```
+#### Tutorial 2 - Clinical trial with EHR-derived external control arm
+
+The relevant case study for this tutorial is:
+
+Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a comparison with MONARCH 1. Breast cancer research and treatment. 2020 Nov;184(1):161-72.
+
+The synthetic data we will be working with for tutorial 2 are based on a single arm clinical trial of abemaciclib for treatment of metastatic breast cancer combined with EHR data for patients receiving chemotherapy. 
+
+Data have been aggregated to the level of one row per patient.
+```{r, eval = TRUE, echo = TRUE}
+case2 = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/case2.csv", head=T)
+```
+<blockquote style="font-size:12px">
+time:  death or censoring time (months)
+
+Event: binary event indicator (1 = death, 0 = censoring)
+
+age: age at diagnosis (years)
+
+race: binary indicator of white race (1 = yes, 0 = no)
+
+chemo: binary indicator of prior treatment with chemotherapy (1 = yes, 0 = no)
+
+et: binary indicator of prior treatment with endocrine therapy (1 = yes, 0 = no)
+
+cap: binary indicator of prior treatment with capcitabine (1 = yes, 0 = no)
+
+pr: progesterone receptor status (1 = positive, 0 = negative)
+
+trial: binary indicator of inclusion in single arm trial (1 = trial, 0 = EHR)
+
+</blockquote>
+
+A\. **Matching.** We will use matching to ensure similarity of trial and EHR patients on observed characteristics. 
+
+* Create a 1:1 matched sample based on Mahalanobis distance or propensity score matching. Using these methods is it possible to find a match for all patients in the trial sample?
+* Compare the distribution of patient characteristics between the trial and EHR samples before and after matching. Has matching achieved good balance on all characteristics?
+
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+# Mahalanobis matching
+mah.match <- match.data(matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "mahalanobis"))
+
+# Propensity score matching
+ps.match <- match.data(matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "glm", caliper = 0.1))
+
+# look at balance in patient characteristics before and after matching
+```
+
+B\. **Analysis of matched data** After matching we will investigate the association between treatment with abemaciclib and overall survival. 
+
+* Use Cox proportional hazards regression model to compare overall survival between patients enrolled in the trial and patients receiving standard of care treatment captured in the EHR. 
+* Are results of matched analyses consistent with each other? Are they consistent with analysis of the unmatched sample? What are some possible explanations for the observed relationships besides the causal effect of the experimental treatment on survival?
+
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+## unadjusted comparison of trial and EHR patients prior to matching
+COL = rainbow_hcl(2)
+plot(survfit(Surv(time,Event)~ trial, data = case2), xlim = c(0,28), col = COL, lwd = 2, mark.time = T)
+legend("topright",col = COL, legend = c("Trial","RWD"), lty = 1, lwd = 2)
+
+# Analysis of data prior to matching
+mod1 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = case2)
+summary(mod1)
+
+# Mahalanobis matching
+mod2 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = mah.match)
+summary(mod2)
+
+# Propensity score matching
+mod3 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = ps.match)
+summary(mod3)
+
+```
+
