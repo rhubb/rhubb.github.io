@@ -20,9 +20,9 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 * [Tutorials](ENAR_ShortCourse_Tutorials.html)
 
-* [Tutorials with solutions](EHR_ShortCourse_Tutorials_Solutions.html)
+* [Tutorials with solutions](ENAR_ShortCourse_Tutorials_Solutions.html)
 
-* [R code](EHR_ShortCourse_Tutorials_Code.R)
+* [R code](ENAR_ShortCourse_Tutorials_Code.R)
 
 * Data sets
   * [Case study 1 data](/data/case1.csv) 
