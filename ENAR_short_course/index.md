@@ -16,7 +16,7 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 **[References](EHR_Short_Course_References.pdf)**
 
-**Materials for exercises**
+**Materials for tutorials**
 
 * [Tutorials](ENAR_ShortCourse_Tutorials.html)
 
