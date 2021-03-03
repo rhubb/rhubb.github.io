@@ -21,20 +21,16 @@ The goal of these tutorials is to explore the analysis of EHR data using simulat
 We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.
 
 #### Install R packages
-- For the tutorials included in this short course you will need the [_rpart_](https://cran.r-project.org/web/packages/rpart/index.html), [_pROC_](https://cran.r-project.org/web/packages/pROC/index.html), [_boot_](https://cran.r-project.org/web/packages/boot/index.html), and [_gee_](https://cran.r-project.org/web/packages/gee/index.html) packages.
+- For the tutorials included in this short course you will need the [_rpart_](https://cran.r-project.org/web/packages/rpart/index.html), [_pROC_](https://cran.r-project.org/web/packages/pROC/index.html), [_MatchIt_](https://cran.r-project.org/web/packages/MatchIt/index.html), [_survival_](https://cran.r-project.org/web/packages/survival/index.html), and [_colorspace_](https://cran.r-project.org/web/packages/colorspace/index.html) packages.
 - If you have not already, please install these packages now.
 ```{r, eval=FALSE}
 install.packages("rpart")
 install.packages("pROC")
-install.packages("boot")
-install.packages("gee")
 install.packages("MatchIt")
 install.packages("survival")
 install.packages("colorspace")
 library(rpart)
 library(pROC)
-library(boot)
-library(gee)
 library(MatchIt)
 library(survival)
 library(colorspace)
@@ -42,8 +38,6 @@ library(colorspace)
 ```{r, eval=TRUE, message = FALSE, echo = FALSE}
 library(rpart)
 library(pROC)
-library(boot)
-library(gee)
 library(MatchIt)
 library(survival)
 library(colorspace)
@@ -295,7 +289,8 @@ data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(m
 
 The relevant case study for this tutorial is:
 
-Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a comparison with MONARCH 1. Breast Cancer Research and Treatment. 2020;184(1):161-72.
+Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a compari
+son with MONARCH 1. Breast Cancer Research and Treatment. 2020;184(1):161-72.
 
 The synthetic data we will be working with for tutorial 2 are based on a single arm clinical trial of abemaciclib for treatment of metastatic breast cancer combined with EHR data for patients receiving chemotherapy. 
 
