@@ -53,7 +53,7 @@ library(colorspace)
 
 The relevant case study for this tutorial is:
 
-Kho AN et al. Use of diverse electronic medical record systems to identify genetic risk for type 2 diabetes within a genome-wide association study. Journal of the American Medical Informatics Association. 2012 Mar 1;19(2):212-8.
+Kho AN et al. Use of diverse electronic medical record systems to identify genetic risk for type 2 diabetes within a genome-wide association study. Journal of the American Medical Informatics Association. 2012;19(2):212-8.
 
 The synthetic data we will be working with for tutorial 1 are based on the PEDSnet study of pediatric type 2 diabetes described in the lecture. This dataset includes data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. 
 
@@ -109,7 +109,7 @@ A\. **Phenotype Extraction.** We will apply the eMERGE type 2 diabetes (T2DM) ru
 * Apply the eMERGE T2DM rule to these data. Calculate the sensitivity, specificity, PPV, and NPV of this phenotype
 * Use the gold-standard phenotype labels available for a subset of the data to develop prediction models for T2DM using logistic regression and CART. How do the operating characteristics of these approaches compare to each other and to the eMERGE clinical decision rule?
 
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## eMERGE T2DM rule
 
 T2DM.rule <- function(x){
@@ -220,7 +220,7 @@ B\. **Outcome Misclassification.** For binary phenotypes we can account for erro
 
 * What is the crude odds ratios for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?
 * Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Analysis without additional adjustment variables
 
 # first compute sensitivity and specificity using validation data
@@ -295,7 +295,7 @@ data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(m
 
 The relevant case study for this tutorial is:
 
-Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a comparison with MONARCH 1. Breast cancer research and treatment. 2020 Nov;184(1):161-72.
+Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a comparison with MONARCH 1. Breast Cancer Research and Treatment. 2020;184(1):161-72.
 
 The synthetic data we will be working with for tutorial 2 are based on a single arm clinical trial of abemaciclib for treatment of metastatic breast cancer combined with EHR data for patients receiving chemotherapy. 
 
@@ -329,14 +329,22 @@ A\. **Matching.** We will use matching to ensure similarity of trial and EHR pat
 * Create a 1:1 matched sample based on Mahalanobis distance or propensity score matching. Using these methods is it possible to find a match for all patients in the trial sample?
 * Compare the distribution of patient characteristics between the trial and EHR samples before and after matching. Has matching achieved good balance on all characteristics?
 
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 # Mahalanobis matching
-mah.match <- match.data(matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "mahalanobis"))
+mah.match <- matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "mahalanobis")
+mah.data <- match.data(mah.match)
 
 # Propensity score matching
-ps.match <- match.data(matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "glm", caliper = 0.1))
+ps.match <- matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "glm", caliper = 0.1)
+ps.data <- match.data(ps.match)
 
-# look at balance in patient characteristics before and after matching
+# check balance in patient characteristics before and after matching
+summary(mah.match, addlvariables = ~ et*race) # generate balance statistics before and after Mahalanobis matching
+plot(summary(mah.match), var.order = "unmatched")
+
+summary(ps.match, addlvariables = ~ et*race, un = FALSE) # generate balance statistics after propensity score matching
+plot(summary(ps.match), var.order = "unmatched")
+plot(ps.match, type = "histogram") # historgam of propensity scores before and after matching
 ```
 
 B\. **Analysis of matched data** After matching we will investigate the association between treatment with abemaciclib and overall survival. 
@@ -344,7 +352,7 @@ B\. **Analysis of matched data** After matching we will investigate the associat
 * Use Cox proportional hazards regression model to compare overall survival between patients enrolled in the trial and patients receiving standard of care treatment captured in the EHR. 
 * Are results of matched analyses consistent with each other? Are they consistent with analysis of the unmatched sample? What are some possible explanations for the observed relationships besides the causal effect of the experimental treatment on survival?
 
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## unadjusted comparison of trial and EHR patients prior to matching
 COL = rainbow_hcl(2)
 plot(survfit(Surv(time,Event)~ trial, data = case2), xlim = c(0,28), col = COL, lwd = 2, mark.time = T)
@@ -355,11 +363,11 @@ mod1 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data
 summary(mod1)
 
 # Mahalanobis matching
-mod2 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = mah.match)
+mod2 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = mah.data)
 summary(mod2)
 
 # Propensity score matching
-mod3 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = ps.match)
+mod3 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = ps.data)
 summary(mod3)
 
 ```
