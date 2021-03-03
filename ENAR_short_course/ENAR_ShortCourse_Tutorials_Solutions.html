@@ -489,8 +489,7 @@ summary {
 <hr />
 <div id="introduction" class="section level4">
 <h4>Introduction</h4>
-<p>The goal of these tutorials is to explore the analysis of EHR data using simulated data sets resembling the structure of data from some real-world examples. We will implement the statistical methods described in the case studies and compare results using a few alternative methods. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course we will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.</p>
-<p>We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.</p>
+<p>The goal of these tutorials is to explore the analysis of EHR data using simulated data sets resembling the structure of data from some real-world examples. We will implement the statistical methods described in the case studies and compare results using a few alternative methods. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.</p>
 </div>
 <div id="install-r-packages" class="section level4">
 <h4>Install R packages</h4>
@@ -511,7 +510,7 @@ summary {
 </div>
 <div id="tutorial-1---addressing-phentyping-error-in-the-study-of-diabetes" class="section level4">
 <h4>Tutorial 1 - Addressing phentyping error in the study of diabetes</h4>
-<p>The relevant case study for this tutorial is:</p>
+<p>The case study for this tutorial is:</p>
 <p>Kho AN et al. Use of diverse electronic medical record systems to identify genetic risk for type 2 diabetes within a genome-wide association study. Journal of the American Medical Informatics Association. 2012;19(2):212-8.</p>
 <p>The synthetic data we will be working with for tutorial 1 are based on the PEDSnet study of pediatric type 2 diabetes described in the lecture. This dataset includes data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019.</p>
 <p>Data have been aggregated to the level of one row per patient.</p>
@@ -538,7 +537,7 @@ summary {
 <p>T2DMv: Type 2 diabetes status based on manual chart review (1 = T2DM, 0 = no evidence of T2DM)</p>
 <p>rs7903146: patient genotype (presence of 1 or more copy of the minor allele)</p>
 </blockquote>
-<p>A. <strong>Phenotype Extraction.</strong> We will apply the eMERGE type 2 diabetes (T2DM) rule-based phenotype to this data set along with a few alternative approaches to deriving a T2DM phenotype from this data set.</p>
+<p>A. <strong>Phenotype Extraction.</strong> We will apply the eMERGE type 2 diabetes (T2DM) rule-based phenotype to this data set along with a few alternative approaches to deriving a T2DM phenotype.</p>
 <ul>
 <li>Apply the eMERGE T2DM rule to these data. Calculate the sensitivity, specificity, PPV, and NPV of this phenotype</li>
 <li>Use the gold-standard phenotype labels available for a subset of the data to develop prediction models for T2DM using logistic regression and CART. How do the operating characteristics of these approaches compare to each other and to the eMERGE clinical decision rule?</li>
@@ -603,18 +602,19 @@ summary {
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># eMERGE NPV</span></span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(case1<span class="op">$</span>T2DMv[case1<span class="op">$</span>T2DMemerge <span class="op">==</span><span class="st"> </span><span class="dv">0</span>],<span class="dt">na.rm =</span> T)</span></code></pre></div>
 <pre><code>## [1] 0.7776607</code></pre>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">## Phenotyping models using gold standard labels from validation data set to construct prediction models for T2DM</span></span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">## Phenotyping models using gold standard labels from validated subset of observations to construct prediction models for T2DM</span></span>
 <span id="cb11-2"><a href="#cb11-2"></a></span>
 <span id="cb11-3"><a href="#cb11-3"></a><span class="co">## Logistic regression</span></span>
 <span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a>mod.glm &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMv <span class="op">~</span><span class="st"> </span>T2DM <span class="op">+</span><span class="st"> </span>T1DM <span class="op">+</span><span class="st"> </span>bmimean <span class="op">+</span><span class="st"> </span>anyglucose <span class="op">+</span><span class="st"> </span>anyhba1c <span class="op">+</span><span class="st"> </span>anyinsulin <span class="op">+</span><span class="st"> </span>anymetformin, <span class="dt">data =</span> case1, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb11-6"><a href="#cb11-6"></a></span>
-<span id="cb11-7"><a href="#cb11-7"></a><span class="co"># logistic regression-based phenotype</span></span>
-<span id="cb11-8"><a href="#cb11-8"></a>case1<span class="op">$</span>T2DMglm &lt;-<span class="st"> </span><span class="kw">predict</span>(mod.glm, <span class="dt">newdata =</span> case1)</span>
-<span id="cb11-9"><a href="#cb11-9"></a></span>
-<span id="cb11-10"><a href="#cb11-10"></a><span class="co"># evaluate performance of logistic regression phenotype</span></span>
-<span id="cb11-11"><a href="#cb11-11"></a>pred.glm &lt;-<span class="st"> </span><span class="kw">na.omit</span>(<span class="kw">data.frame</span>(<span class="dt">pred =</span> case1<span class="op">$</span>T2DMglm,<span class="dt">true =</span> case1<span class="op">$</span>T2DMv))</span>
-<span id="cb11-12"><a href="#cb11-12"></a>perf.glm &lt;-<span class="st"> </span><span class="kw">roc</span>(pred.glm<span class="op">$</span>true, pred.glm<span class="op">$</span>pred, <span class="dt">auc =</span> <span class="ot">TRUE</span>, <span class="dt">print.auc =</span> <span class="ot">TRUE</span>, <span class="dt">show.thres =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<span id="cb11-5"><a href="#cb11-5"></a>mod.glm &lt;-<span class="st"> </span><span class="kw">glm</span>(T2DMv <span class="op">~</span><span class="st"> </span>T2DM <span class="op">+</span><span class="st"> </span>T1DM <span class="op">+</span><span class="st"> </span>bmimean <span class="op">+</span><span class="st"> </span>anyglucose <span class="op">+</span><span class="st"> </span>anyhba1c <span class="op">+</span><span class="st"> </span>anyinsulin <span class="op">+</span><span class="st"> </span>anymetformin, </span>
+<span id="cb11-6"><a href="#cb11-6"></a>               <span class="dt">data =</span> case1, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb11-7"><a href="#cb11-7"></a></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co"># logistic regression-based phenotype</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>case1<span class="op">$</span>T2DMglm &lt;-<span class="st"> </span><span class="kw">predict</span>(mod.glm, <span class="dt">newdata =</span> case1)</span>
+<span id="cb11-10"><a href="#cb11-10"></a></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="co"># evaluate performance of logistic regression phenotype</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a>pred.glm &lt;-<span class="st"> </span><span class="kw">na.omit</span>(<span class="kw">data.frame</span>(<span class="dt">pred =</span> case1<span class="op">$</span>T2DMglm,<span class="dt">true =</span> case1<span class="op">$</span>T2DMv))</span>
+<span id="cb11-13"><a href="#cb11-13"></a>perf.glm &lt;-<span class="st"> </span><span class="kw">roc</span>(pred.glm<span class="op">$</span>true, pred.glm<span class="op">$</span>pred, <span class="dt">auc =</span> <span class="ot">TRUE</span>, <span class="dt">print.auc =</span> <span class="ot">TRUE</span>, <span class="dt">show.thres =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <pre><code>## Setting levels: control = 0, case = 1</code></pre>
 <pre><code>## Setting direction: controls &lt; cases</code></pre>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">plot</span>(perf.glm)</span></code></pre></div>
@@ -624,8 +624,8 @@ summary {
 <pre><code>## Area under the curve: 0.9182</code></pre>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">## CART</span></span>
 <span id="cb17-2"><a href="#cb17-2"></a></span>
-<span id="cb17-3"><a href="#cb17-3"></a><span class="kw">set.seed</span>(<span class="dv">20190805</span>)</span>
-<span id="cb17-4"><a href="#cb17-4"></a>mod.cart &lt;-<span class="st"> </span><span class="kw">rpart</span>(T2DMv <span class="op">~</span><span class="st"> </span>T2DM <span class="op">+</span><span class="st"> </span>T1DM  <span class="op">+</span><span class="st"> </span>bmimean <span class="op">+</span><span class="st"> </span>anyglucose <span class="op">+</span><span class="st"> </span>anyhba1c, <span class="dt">data =</span> case1, <span class="dt">method =</span> <span class="st">&quot;class&quot;</span>)</span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="kw">set.seed</span>(<span class="dv">20210303</span>)</span>
+<span id="cb17-4"><a href="#cb17-4"></a>mod.cart &lt;-<span class="st"> </span><span class="kw">rpart</span>(T2DMv <span class="op">~</span><span class="st"> </span>T2DM <span class="op">+</span><span class="st"> </span>T1DM  <span class="op">+</span><span class="st"> </span>bmimean <span class="op">+</span><span class="st"> </span>anyglucose <span class="op">+</span><span class="st"> </span>anyhba1c <span class="op">+</span><span class="st"> </span>anyinsulin <span class="op">+</span><span class="st"> </span>anymetformin, <span class="dt">data =</span> case1, <span class="dt">method =</span> <span class="st">&quot;class&quot;</span>)</span>
 <span id="cb17-5"><a href="#cb17-5"></a>mod.pruned&lt;-<span class="st"> </span><span class="kw">prune</span>(mod.cart, <span class="dt">cp=</span> mod.cart<span class="op">$</span>cptable[<span class="kw">which.min</span>(mod.cart<span class="op">$</span>cptable[,<span class="st">&quot;xerror&quot;</span>]),<span class="st">&quot;CP&quot;</span>])</span>
 <span id="cb17-6"><a href="#cb17-6"></a></span>
 <span id="cb17-7"><a href="#cb17-7"></a><span class="kw">par</span>(<span class="dt">xpd =</span> <span class="ot">NA</span>) <span class="co"># prevent text labels from being cut off</span></span>
@@ -649,30 +649,30 @@ summary {
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="co"># CART AUC</span></span>
 <span id="cb21-2"><a href="#cb21-2"></a>perf.cart<span class="op">$</span>auc</span></code></pre></div>
 <pre><code>## Area under the curve: 0.9022</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="co"># sensitivity and specificity of the binary CART phenotype </span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>sens &lt;-<span class="st"> </span><span class="kw">mean</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(case1<span class="op">$</span>T2DMcart.class[case1<span class="op">$</span>T2DMv <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(case1<span class="op">$</span>T2DMv)])))</span>
+<span id="cb23-3"><a href="#cb23-3"></a>sens</span></code></pre></div>
+<pre><code>## [1] 0.8305085</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>spec &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">-</span><span class="kw">mean</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(case1<span class="op">$</span>T2DMcart.class[case1<span class="op">$</span>T2DMv <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(case1<span class="op">$</span>T2DMv)])))</span>
+<span id="cb25-2"><a href="#cb25-2"></a>spec</span></code></pre></div>
+<pre><code>## [1] 0.9317585</code></pre>
 <p>B. <strong>Outcome Misclassification.</strong> For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and genotype (rs7903146).</p>
 <ul>
 <li>What is the crude odds ratios for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?</li>
 <li>Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and rs7903146 (exposure) with and without correction for outcome misclassification?</li>
 </ul>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="co">## Analysis without additional adjustment variables</span></span>
-<span id="cb23-2"><a href="#cb23-2"></a></span>
-<span id="cb23-3"><a href="#cb23-3"></a><span class="co"># first compute sensitivity and specificity using validation data</span></span>
-<span id="cb23-4"><a href="#cb23-4"></a>sens &lt;-<span class="st"> </span><span class="kw">mean</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(case1<span class="op">$</span>T2DMcart.class[case1<span class="op">$</span>T2DMv <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(case1<span class="op">$</span>T2DMv)])))</span>
-<span id="cb23-5"><a href="#cb23-5"></a>sens</span></code></pre></div>
-<pre><code>## [1] 0.8305085</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>spec &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">-</span><span class="kw">mean</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(case1<span class="op">$</span>T2DMcart.class[case1<span class="op">$</span>T2DMv <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(case1<span class="op">$</span>T2DMv)])))</span>
-<span id="cb25-2"><a href="#cb25-2"></a>spec</span></code></pre></div>
-<pre><code>## [1] 0.9317585</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co"># compute odds ratios based on 2x2 table</span></span>
-<span id="cb27-2"><a href="#cb27-2"></a>a &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
-<span id="cb27-3"><a href="#cb27-3"></a>b &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
-<span id="cb27-4"><a href="#cb27-4"></a>c &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
-<span id="cb27-5"><a href="#cb27-5"></a>d &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
-<span id="cb27-6"><a href="#cb27-6"></a></span>
-<span id="cb27-7"><a href="#cb27-7"></a>or.std &lt;-<span class="st"> </span>a<span class="op">*</span>d<span class="op">/</span>(b<span class="op">*</span>c) <span class="co"># standard odds ratio</span></span>
-<span id="cb27-8"><a href="#cb27-8"></a>or.mh &lt;-<span class="st"> </span>(a<span class="op">/</span>(a<span class="op">+</span>b)<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>spec))<span class="op">/</span>(c<span class="op">/</span>(c<span class="op">+</span>d)<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>spec))<span class="op">*</span>(sens<span class="op">-</span>c<span class="op">/</span>(c<span class="op">+</span>d))<span class="op">/</span>(sens<span class="op">-</span>a<span class="op">/</span>(a<span class="op">+</span>b)) <span class="co"># Magder and Hughes adjusted odds ratio</span></span>
-<span id="cb27-9"><a href="#cb27-9"></a></span>
-<span id="cb27-10"><a href="#cb27-10"></a>or.std</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co">## Analysis without additional adjustment variables</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a></span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="co"># compute odds ratios based on 2x2 table</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>a &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
+<span id="cb27-5"><a href="#cb27-5"></a>b &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
+<span id="cb27-6"><a href="#cb27-6"></a>c &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb27-7"><a href="#cb27-7"></a>d &lt;-<span class="st"> </span><span class="kw">sum</span>(case1<span class="op">$</span>T2DMcart.class <span class="op">==</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>case1<span class="op">$</span>rs7903146 <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb27-8"><a href="#cb27-8"></a></span>
+<span id="cb27-9"><a href="#cb27-9"></a>or.std &lt;-<span class="st"> </span>a<span class="op">*</span>d<span class="op">/</span>(b<span class="op">*</span>c) <span class="co"># standard odds ratio</span></span>
+<span id="cb27-10"><a href="#cb27-10"></a>or.mh &lt;-<span class="st"> </span>(a<span class="op">/</span>(a<span class="op">+</span>b)<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>spec))<span class="op">/</span>(c<span class="op">/</span>(c<span class="op">+</span>d)<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>spec))<span class="op">*</span>(sens<span class="op">-</span>c<span class="op">/</span>(c<span class="op">+</span>d))<span class="op">/</span>(sens<span class="op">-</span>a<span class="op">/</span>(a<span class="op">+</span>b)) <span class="co"># Magder and Hughes adjusted odds ratio</span></span>
+<span id="cb27-11"><a href="#cb27-11"></a></span>
+<span id="cb27-12"><a href="#cb27-12"></a>or.std</span></code></pre></div>
 <pre><code>## [1] 1.101948</code></pre>
 <div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>or.mh</span></code></pre></div>
 <pre><code>## [1] 1.143989</code></pre>
@@ -822,7 +822,7 @@ summary {
 </div>
 <div id="tutorial-2---clinical-trial-with-ehr-derived-external-control-arm" class="section level4">
 <h4>Tutorial 2 - Clinical trial with EHR-derived external control arm</h4>
-<p>The relevant case study for this tutorial is:</p>
+<p>The case study for this tutorial is:</p>
 <p>Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a compari son with MONARCH 1. Breast Cancer Research and Treatment. 2020;184(1):161-72.</p>
 <p>The synthetic data we will be working with for tutorial 2 are based on a single arm clinical trial of abemaciclib for treatment of metastatic breast cancer combined with EHR data for patients receiving chemotherapy.</p>
 <p>Data have been aggregated to the level of one row per patient.</p>

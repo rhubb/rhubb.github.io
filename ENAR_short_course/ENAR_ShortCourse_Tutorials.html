@@ -489,8 +489,7 @@ summary {
 <hr />
 <div id="introduction" class="section level4">
 <h4>Introduction</h4>
-<p>The goal of these tutorials is to explore the analysis of EHR data using simulated data sets resembling the structure of data from some real-world examples. We will implement the statistical methods described in the case studies and compare results using a few alternative methods. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course we will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.</p>
-<p>We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.</p>
+<p>The goal of these tutorials is to explore the analysis of EHR data using simulated data sets resembling the structure of data from some real-world examples. We will implement the statistical methods described in the case studies and compare results using a few alternative methods. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> We will use separate synthetic data sets for each of the three case-studies presented in the short course. A brief description of each data set is provided along with the corresponding tutorial.</p>
 </div>
 <div id="install-r-packages" class="section level4">
 <h4>Install R packages</h4>
@@ -511,7 +510,7 @@ summary {
 </div>
 <div id="tutorial-1---addressing-phentyping-error-in-the-study-of-diabetes" class="section level4">
 <h4>Tutorial 1 - Addressing phentyping error in the study of diabetes</h4>
-<p>The relevant case study for this tutorial is:</p>
+<p>The case study for this tutorial is:</p>
 <p>Kho AN et al. Use of diverse electronic medical record systems to identify genetic risk for type 2 diabetes within a genome-wide association study. Journal of the American Medical Informatics Association. 2012;19(2):212-8.</p>
 <p>The synthetic data we will be working with for tutorial 1 are based on the PEDSnet study of pediatric type 2 diabetes described in the lecture. This dataset includes data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019.</p>
 <p>Data have been aggregated to the level of one row per patient.</p>
@@ -537,7 +536,7 @@ summary {
 <p>T2DMv: Type 2 diabetes status based on manual chart review (1 = T2DM, 0 = no evidence of T2DM)</p>
 <p>rs7903146: patient genotype (presence of 1 or more copy of the minor allele)</p>
 </blockquote>
-<p>A. <strong>Phenotype Extraction.</strong> We will apply the eMERGE type 2 diabetes (T2DM) rule-based phenotype to this data set along with a few alternative approaches to deriving a T2DM phenotype from this data set.</p>
+<p>A. <strong>Phenotype Extraction.</strong> We will apply the eMERGE type 2 diabetes (T2DM) rule-based phenotype to this data set along with a few alternative approaches to deriving a T2DM phenotype.</p>
 <ul>
 <li>Apply the eMERGE T2DM rule to these data. Calculate the sensitivity, specificity, PPV, and NPV of this phenotype</li>
 <li>Use the gold-standard phenotype labels available for a subset of the data to develop prediction models for T2DM using logistic regression and CART. How do the operating characteristics of these approaches compare to each other and to the eMERGE clinical decision rule?</li>
@@ -550,7 +549,7 @@ summary {
 </div>
 <div id="tutorial-2---clinical-trial-with-ehr-derived-external-control-arm" class="section level4">
 <h4>Tutorial 2 - Clinical trial with EHR-derived external control arm</h4>
-<p>The relevant case study for this tutorial is:</p>
+<p>The case study for this tutorial is:</p>
 <p>Rugo HS et al. Real-world survival outcomes of heavily pretreated patients with refractory HR+, HER2− metastatic breast cancer receiving single-agent chemotherapy—a compari son with MONARCH 1. Breast Cancer Research and Treatment. 2020;184(1):161-72.</p>
 <p>The synthetic data we will be working with for tutorial 2 are based on a single arm clinical trial of abemaciclib for treatment of metastatic breast cancer combined with EHR data for patients receiving chemotherapy.</p>
 <p>Data have been aggregated to the level of one row per patient.</p>
