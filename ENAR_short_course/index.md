@@ -12,9 +12,9 @@ In this half-day short course, we will discuss four key issues for research cond
 
 Participants in the ENAR 2021 Short Course "Case Studies in Generating Real World Evidence From Real World Data" should download all of the files below.
 
-**[Slides](ENAR_Short_Course.pdf)**
+**[Slides](ENAR_Short_Course_2021.pdf)**
 
-**[References](EHR_Short_Course_References.pdf)**
+**[References](ENAR_Short_Course_References.pdf)**
 
 **Materials for tutorials**
 

@@ -1,316 +1,30 @@
 ## R code for ENAR EHR short course tutorials
 
 ##-------------------------------------------------------------##
-## Read in data
-##-------------------------------------------------------------##
-
-#### Encounter data
-encounter = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/encounter.csv", head=T)
- 
-#### Prescription medication data
-meds = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/meds.csv", head=T)
-
-#### Measures data
-measures = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/measures.csv", head=T)
-
-#### Validation data
-validation = read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/validation.csv", head=T)
-
-##-------------------------------------------------------------##
-## Install R packages
+## Install and load R packages
 ##-------------------------------------------------------------##
 
 install.packages("rpart")
 install.packages("pROC")
-install.packages("boot")
-install.packages("gee")
+install.packages("MatchIt")
+install.packages("survival")
+install.packages("colorspace")
 
 library(rpart)
 library(pROC)
-library(boot)
-library(gee)
+library(MatchIt)
+library(survival)
+library(colorspace)
 
 ##-------------------------------------------------------------##
-## Tutorials
+## Tutorial 1 - Addressing phenotyping error in the study of diabetes
 ##-------------------------------------------------------------##
 
-##-------------------------------------------------------------##
-## Tutorial 1
-##-------------------------------------------------------------##
-
-##-------------------------------------------------------------
-## A. Data Quality Evaluation
-
-## Use summary statistics and plots to investigate basic characteristics of the data
-
-summary(measures)
-
-# check types of measures available
-unique(measures$measuretype)
-
-# separate variables by measurement type
-height <- measures[measures$measuretype == "height",-4]
-names(height) <- c("patientid","servicedate","height")
-
-weight <- measures[measures$measuretype == "weight",-4]
-names(weight) <- c("patientid","servicedate","weight")
-
-glucose <- measures[measures$measuretype == "glucose",-4]
-names(glucose) <- c("patientid","servicedate","glucose")
-
-hba1c <- measures[measures$measuretype == "hba1c",-4]
-names(hba1c) <- c("patientid","servicedate","hba1c")
-
-chol <- measures[measures$measuretype == "chol",-4]
-names(chol) <- c("patientid","servicedate","chol")
-
-# explore number of observations available per patient for each measurement type
-
-summary(c(table(factor(height$patientid, levels = unique(encounter$patientid)))))
-summary(c(table(factor(weight$patientid, levels = unique(encounter$patientid)))))
-summary(c(table(factor(glucose$patientid, levels = unique(encounter$patientid)))))
-summary(c(table(factor(hba1c$patientid, levels = unique(encounter$patientid)))))
-summary(c(table(factor(chol$patientid, levels = unique(encounter$patientid)))))
-
-# number of children with no measures available
-
-sum(c(table(factor(height$patientid, levels = unique(encounter$patientid)))) == 0)
-sum(c(table(factor(weight$patientid, levels = unique(encounter$patientid)))) == 0)
-sum(c(table(factor(glucose$patientid, levels = unique(encounter$patientid)))) == 0)
-sum(c(table(factor(hba1c$patientid, levels = unique(encounter$patientid)))) == 0)
-sum(c(table(factor(chol$patientid, levels = unique(encounter$patientid)))) == 0)
-
-# summarize distribution of variables across all patients, looking for values outside the plausible range
-
-summary(height$height)
-summary(weight$weight)
-summary(glucose$glucose)
-summary(hba1c$hba1c)
-summary(chol$chol)
-
-# values that are clearly outside the plausible range can be eliminated, those that seem unlikely should be
-# noted for discussion with clinical collaborators
-
-# remove negative weights as clearly lying outside the plausible range
-
-weight$weight <- ifelse(weight$weight < 0, NA, weight$weight)
-
-# identify patients with extreme heights and weights
-
-extreme.heights <- height$patientid[height$height < 100] # flag patients with height < 1 m
-extreme.weights <- weight$patientid[weight$weight > 200] # flag patients with weight > 200 kg
-
-# implausible patterns in longitudinal measurements provide an additional means of identifying data errors
-
-height.s <- split(data.frame(height$servicedate,height$height),height$patientid)
-weight.s <- split(data.frame(as.Date(weight$servicedate),weight$weight),weight$patientid)
-glucose.s <- split(data.frame(as.Date(glucose$servicedate),glucose$glucose),glucose$patientid)
-hba1c.s <- split(data.frame(as.Date(hba1c$servicedate),hba1c$hba1c),hba1c$patientid)
-
-# summarize rate of change and within-patient variability
-
-# function to estimate rate of change and residual variability for each child's data
-longrate <- function(x){
-  days <- as.numeric(as.Date(x[,1]))
-  measure <- x[,2]
-  mod <- lm(measure ~ days)
-  rate <- mod$coef[2]
-  residsd <- summary(mod)$sigma
-  return(c(rate,residsd))
-}
-
-height.lm <- t(sapply(height.s,longrate))
-
-# take a look at a few patients with implausible trajectories
-
-height.change.ind <- which(abs(height.lm[,1]) > 0.5)     
-par(mfrow = c(2,3))
-for (i in 1:6){
-  plot(as.numeric(as.Date(height.s[[height.change.ind[i]]][,1])),height.s[[height.change.ind[i]]][,2], xlab = "date", ylab = "height", type = "l")
-}
-
-# a few of these measures look very suspicious, as if one measurement is about 2.5 times the other
-# take a closer look at an example case
-
-height[height$patientid == names(height.change.ind[4]),]
-
-# generate BMI and look for implausible values
-
-height$iddate <- paste(height$patientid,height$servicedate)
-weight$iddate <- paste(weight$patientid,weight$servicedate)
-bmi <- merge(height,weight,by = "iddate") # merge height and weight data 
-bmi$bmi <- bmi$weight/(bmi$height/100)^2
-
-par(mfrow = c(2,2))
-hist(bmi$bmi)
-plot(bmi$weight,bmi$bmi)
-plot(bmi$height,bmi$bmi)
-
-# unusual groupings in BMI plots suggest patients with wrong units for height or weight
-# select a rule for eliminating these heights or weights
-
-bmi$height <- ifelse(bmi$height < 100 & bmi$bmi > 100, bmi$height*2.54, bmi$height)
-bmi$bmi <- bmi$weight/(bmi$height/100)^2
-
-par(mfrow = c(2,2))
-hist(bmi$bmi)
-plot(bmi$weight,bmi$bmi)
-plot(bmi$height,bmi$bmi)
-
-##-------------------------------------------------------------
-# B. Phenotype Extraction
-
-## Aggregate data to the patient level
-
-# aggregate numeric measurements using the earliest, mean and maximum observed values
-
-bmi$bmimean <- unsplit(sapply(split(bmi$bmi,bmi$patientid.x),mean,na.rm = T),bmi$patientid.x)
-bmi$bmimax <- unsplit(sapply(split(bmi$bmi,bmi$patientid.x),max,na.rm = T),bmi$patientid.x)
-bmi$firstbmi <- unsplit(sapply(split(bmi$bmi,bmi$patientid.x),function(x){x[1]}),bmi$patientid.x)
-
-glucose$glucosemean <- unsplit(sapply(split(glucose$glucose,glucose$patientid),mean,na.rm = T),glucose$patientid)
-glucose$glucosemax <- unsplit(sapply(split(glucose$glucose,glucose$patientid),max,na.rm = T),glucose$patientid)
-
-hba1c$hba1cmean <- unsplit(sapply(split(hba1c$hba1c,hba1c$patientid),mean,na.rm = T),hba1c$patientid)
-hba1c$hba1cmax <- unsplit(sapply(split(hba1c$hba1c,hba1c$patientid),max,na.rm = T),hba1c$patientid)
-
-encounter$agemean <- unsplit(sapply(split(encounter$age,encounter$patientid),mean,na.rm = T),encounter$patientid)
-encounter$firstage <- unsplit(sapply(split(encounter$age,encounter$patientid),min,na.rm = T),encounter$patientid)
-
-# compute elapsed time from first visit to current visit and summarize cholesterol in first year of follow-up
-encounter$basedate <- rep(encounter$servicedate[!duplicated(encounter$patientid)], time = c(table(encounter$patientid))) # date of first visit
-encounter$elapsed <- as.Date(encounter$servicedate) - as.Date(encounter$basedate)
-encounter$anyvisit1yr <- unsplit(sapply(split(encounter$elapsed,encounter$patientid), # binary indicator of any visit in first year of follow-up
-                                        function(x){sum(x[x>0] <= 365) > 0}),encounter$patientid)
-chol <- merge(chol,data.frame(patientid = encounter$patientid, basedate = encounter$basedate)[!duplicated(encounter$patientid),], 
-              all.x = TRUE, all.y = FALSE)
-chol$elapsed <- as.Date(chol$servicedate) - as.Date(chol$basedate)
-chol$cholmean1yr <- unsplit(sapply(split(data.frame(chol = chol$chol, days = chol$elapsed),chol$patientid),
-                                   function(x){mean(x$chol[x$days <= 365 & x$days > 0],na.rm = T)}),chol$patientid)
-
-# look for any occurence of diabetes diagnosis codes, insulin, metformin,
-# or visit to an endocrinologist within the period of interest
-# T2DM ICD-9 = "250.00", T2DM ICD-10 = "E11.9", T1DM ICD-9 = "250.01", T1DM ICD-10 = "E10.9"
-# Endocrinologist Medicare specialty code = 46
-
-anycode <- function(x,code){
-  code.present <- x %in% code
-  return(sum(code.present)>0)
-}
-
-# Count number of occurences of code
-
-sumcode <- function(x,code){
-  code.present <- x %in% code
-  return(sum(code.present))
-}
-
-# Determine whether metformin prescription precedes insulin prescription
-# Returns 1 if only metformin prescribed or metformin prescribed before insulin
-# otherwise returns 0
-
-codeorder <- function(x){
-  metdates <- as.Date(x$dates[x$drugs == "metformin"])
-  insdates <- as.Date(x$dates[x$drugs == "insulin"])
-  if (length(metdates) == 0) metfirst <- 0
-  else if (length(metdates) > 0 & length(insdates) == 0) metfirst <- 1
-  else if (length(metdates) == 0 & length(insdates) == 0) metfirst <- 0
-  else metfirst <- suppressMessages(1*(min(metdates) < min(insdates)))
-  return(metfirst)
-}
-
-# any T2DM code
-encounter$T2DM <- unsplit(sapply(split(encounter$diag,encounter$patientid),anycode,code = c("250.00","E11.9")),encounter$patientid)
-
-# number of T2DM codes
-encounter$T2DMnum <- unsplit(sapply(split(encounter$diag,encounter$patientid),sumcode,code = c("250.00","E11.9")),encounter$patientid) # number of occurence of T2DM code
-
-# any T1DM code
-encounter$T1DM <- unsplit(sapply(split(encounter$diag,encounter$patientid),anycode,code = c("250.01","E10.9")),encounter$patientid)
-
-# any visit to an endocrinologist
-encounter$endo <- unsplit(sapply(split(encounter$prov,encounter$patientid),anycode,code = "46"),encounter$patientid)
-
-# any depression diagnosis
-encounter$dep <- unsplit(sapply(split(encounter$diag,encounter$patientid),anycode,code = c("296.2","296.9","296.3","300.4","F32.9","F41.8","F33.9")),encounter$patientid)
-
-# any insulin prescription
-meds$anyinsulin <- unsplit(sapply(split(meds$drug,meds$patientid),anycode,code = "insulin"),meds$patientid)
-
-# any metformin prescription
-meds$anymetformin <- unsplit(sapply(split(meds$drug,meds$patientid),anycode,code = "metformin"),meds$patientid)
-
-# metformin prescription precedes insulin prescription
-meds$metforminfirst <- unsplit(sapply(split(data.frame(dates=meds$presdate,drugs=meds$drug),
-                                            meds$patientid),codeorder),meds$patientid)
-
-
-## Create merged dataset with one observation per patient and aggregate variables
-
-encounter1 <- encounter[!duplicated(encounter$patientid),c("patientid","agemean","firstage","race","gender","T2DM","T1DM","endo","T2DMnum","dep","anyvisit1yr")]
-bmi1 <- bmi[!duplicated(bmi$patientid.x),c("patientid.x","bmimean","bmimax","firstbmi")]
-names(bmi1) <- c("patientid","bmimean","bmimax","firstbmi")
-glucose1 <- glucose[!duplicated(glucose$patientid),c("patientid","glucosemean","glucosemax")]
-hba1c1 <- hba1c[!duplicated(hba1c$patientid),c("patientid","hba1cmean","hba1cmax")]
-chol1 <- chol[!duplicated(chol$patientid),c("patientid","cholmean1yr")]
-meds1  <- meds[!duplicated(meds$patientid),c("patientid","anyinsulin","anymetformin","metforminfirst")]
-
-data1 <- Reduce(function(x,y){merge(x,y, all = T)},list(encounter1,bmi1,glucose1,hba1c1,chol1,meds1,validation))
-
-# create indicators for availability of any glucose or HbA1c measures
-
-data1$anyglucose <- !is.na(data1$glucosemean)
-data1$anyhba1c   <- !is.na(data1$hba1cmean)
-
-# set insulin and metformin to false for patients with no medication data
-
-data1$anyinsulin <- ifelse(is.na(data1$anyinsulin),FALSE,data1$anyinsulin)
-data1$anymetformin <- ifelse(is.na(data1$anymetformin),FALSE,data1$anymetformin)
-
-## Phenotyping models using gold standard labels from validation data set to construct prediction models for T2DM
-
-## Logistic regression
-
-mod.glm <- glm(T2DMv ~ T2DM + T1DM + bmimean + anyglucose + anyhba1c + anyinsulin + anymetformin, data = data1, family = "binomial")
-
-# logistic regression-based phenotype
-data1$T2DMglm <- predict(mod.glm, newdata = data1)
-
-# evaluate performance of logistic regression phenotype
-pred.glm <- na.omit(data.frame(pred = data1$T2DMglm,true = data1$T2DMv))
-perf.glm <- roc(pred.glm$true, pred.glm$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
-
-plot(perf.glm)
-
-# Logistic regression AUC
-perf.glm$auc
-
-## CART
-
-set.seed(20190805)
-mod.cart <- rpart(T2DMv ~ T2DM + T1DM  + bmimean + anyglucose + anyhba1c, data = data1, method = "class")
-mod.pruned<- prune(mod.cart, cp= mod.cart$cptable[which.min(mod.cart$cptable[,"xerror"]),"CP"])
-
-par(xpd = NA) # prevent text labels from being cut off
-plot(mod.pruned)
-text(mod.pruned)
-
-# predicted probabilities of T2DM based on CART
-data1$T2DMcart <- predict(mod.pruned, newdata = data1, type = "prob")
-
-# binary T2DM phenotype based on CART
-data1$T2DMcart.class <- as.numeric(as.character(predict(mod.pruned, newdata = data1, type = "class")))
-
-# evaluate performance of continuous CART phenotype
-pred.cart <- na.omit(data.frame(pred = data1$T2DMcart[,2],true = data1$T2DMv))
-perf.cart <- roc(pred.cart$true, pred.cart$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
-
-par(xpd = FALSE)
-plot(perf.cart)
-
-# CART AUC
-perf.cart$auc
-
+# Read in data
+case1 <- read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/case1.csv", head=T)
+
+# A. Phenotype Extraction
+  
 ## eMERGE T2DM rule
 
 T2DM.rule <- function(x){
@@ -357,127 +71,81 @@ T2DM.rule <- function(x){
   return(T2DM)
 }
 
-data1$T2DMemerge <- unsplit(sapply(split(data1,data1$patientid),T2DM.rule),data1$patientid)
+case1$T2DMemerge <- unsplit(sapply(split(case1,case1$patientid),T2DM.rule),case1$patientid)
 
 # eMERGE specificity
-1-mean(data1$T2DMemerge[data1$T2DMv == 0 & !is.na(data1$T2DMv)])
+1-mean(case1$T2DMemerge[case1$T2DMv == 0 & !is.na(case1$T2DMv)])
 
 # eMERGE sensitivity
-mean(data1$T2DMemerge[data1$T2DMv == 1 & !is.na(data1$T2DMv)])
+mean(case1$T2DMemerge[case1$T2DMv == 1 & !is.na(case1$T2DMv)])
 
 # eMERGE PPV
-mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
+mean(case1$T2DMv[case1$T2DMemerge == 1],na.rm = T)
 
 # eMERGE NPV
-1 - mean(data1$T2DMv[data1$T2DMemerge == 0],na.rm = T)
+1 - mean(case1$T2DMv[case1$T2DMemerge == 0],na.rm = T)
 
-##-------------------------------------------------------------##
-## Tutorial 2
-##-------------------------------------------------------------##
+## Phenotyping models using gold standard labels from validated subset of observations to construct prediction models for T2DM
 
-##-------------------------------------------------------------
-## A. Missing Data
+## Logistic regression
 
-## For most real examples we would want to define our exposure (cholesterol) in a window around
-## cohort entry. For this toy example we will use the one year period after cohort entry. 
+mod.glm <- glm(T2DMv ~ T2DM + T1DM + bmimean + anyglucose + anyhba1c + anyinsulin + anymetformin, 
+               data = case1, family = "binomial")
 
-# Percent with no cholesterol data in first year of follow-up
-mean(is.na(data1$cholmean1yr))
+# logistic regression-based phenotype
+case1$T2DMglm <- predict(mod.glm, newdata = case1)
 
-# Percent with no visit in first year of follow-up
-mean(data1$anyvisit1yr==0)
+# evaluate performance of logistic regression phenotype
+pred.glm <- na.omit(data.frame(pred = case1$T2DMglm,true = case1$T2DMv))
+perf.glm <- roc(pred.glm$true, pred.glm$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
 
-# Look for factors associated with missing cholesterol
-data1$misschol <- is.na(data1$cholmean1yr)
-misschol.mod <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1, family = binomial)
-summary(misschol.mod)
+plot(perf.glm)
 
-# probability of having an observed cholesterol measure based on single stage model
-data1$pobschol1[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod, type = "response", data = data1)
+# Logistic regression AUC
+perf.glm$auc
 
-# Estimate probability of observed cholesterol using a two stage model
-# first estimate probability of having any encounter within 1 yr
-anyvisit.mod <- glm(anyvisit1yr ~ firstage + race + gender + firstbmi, data = data1, family = binomial)
-summary(anyvisit.mod)
+## CART
 
-# probability of having an encounter
-data1$pvisit1yr[!is.na(data1$firstbmi)] <- predict(anyvisit.mod, type = "response")
+set.seed(20210303)
+mod.cart <- rpart(T2DMv ~ T2DM + T1DM  + bmimean + anyglucose + anyhba1c + anyinsulin + anymetformin, data = case1, method = "class")
+mod.pruned<- prune(mod.cart, cp= mod.cart$cptable[which.min(mod.cart$cptable[,"xerror"]),"CP"])
 
-# next estimate probability of having cholesterol measurement given an encounter was observed
-misschol.mod2 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$anyvisit1yr == 1,], family = binomial)
-summary(misschol.mod2)
+par(xpd = NA) # prevent text labels from being cut off
+plot(mod.pruned)
+text(mod.pruned)
 
-# probability of having a choletserol measure given an encounter occurred in first year
-data1$pobschol2[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod2, type = "response", newdata = data1[!is.na(data1$firstbmi),])
+# predicted probabilities of T2DM based on CART
+case1$T2DMcart <- predict(mod.pruned, newdata = case1, type = "prob")
 
-# create combined probability of having an observed cholesterol value using the two stage model
-data1$pobschol.mod <- data1$pvisit1yr*data1$pobschol2
+# binary T2DM phenotype based on CART
+case1$T2DMcart.class <- as.numeric(as.character(predict(mod.pruned, newdata = case1, type = "class")))
 
-## Compare one module and two module probabilities of being observed
-plot(data1$pobschol1, data1$pobschol.mod, xlim = c(0,0.6), ylim = c(0,0.6))
-abline(0,1)
+# evaluate performance of continuous CART phenotype
+pred.cart <- na.omit(data.frame(pred = case1$T2DMcart[,2],true = case1$T2DMv))
+perf.cart <- roc(pred.cart$true, pred.cart$pred, auc = TRUE, print.auc = TRUE, show.thres = TRUE)
 
-## Fit regression models using IPW to account for missingness in cholesterol
+par(xpd = FALSE)
+plot(perf.cart)
 
-# Model using 1 step weights
-data1$w1 <- 1/data1$pobschol1 # inverse probability of observed cholesterol value
-data1$w1[!is.na(data1$cholmean1yr)] <- sum(!is.na(data1$cholmean1yr))*data1$w1[!is.na(data1$cholmean1yr)]/
-  sum(data1$w1[!is.na(data1$cholmean1yr)],na.rm = T) # normalize weights to maintain sample size
-chol.mod1 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean1yr, data = data1, weights = w1, family = "binomial")
-summary(chol.mod1)
+# CART AUC
+perf.cart$auc
 
-# Model using 2 step weights
-data1$w.mod <- 1/data1$pobschol.mod # inverse probability of observed cholesterol value
-data1$w.mod[!is.na(data1$cholmean1yr)] <- sum(!is.na(data1$cholmean1yr))*data1$w.mod[!is.na(data1$cholmean1yr)]/
-  sum(data1$w.mod[!is.na(data1$cholmean1yr)],na.rm = T) # normalize weights to maintain sample size
-chol.mod2 <- glm(T2DMcart.class~ firstage + factor(race) + gender + cholmean1yr, data = data1, weights = w.mod, family = "binomial")
-summary(chol.mod2)
+# sensitivity and specificity of the binary CART phenotype 
+sens <- mean(as.numeric(as.character(case1$T2DMcart.class[case1$T2DMv == 1 & !is.na(case1$T2DMv)])))
+sens
 
-# Compare parameter estimates from the two models
-cbind(chol.mod1$coef,chol.mod2$coef)
+spec <- 1-mean(as.numeric(as.character(case1$T2DMcart.class[case1$T2DMv == 0 & !is.na(case1$T2DMv)])))
+spec
 
-##-------------------------------------------------------------
-## B. Confounding by Utilization Intensity
-
-# Number of encounters per patient
-encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
-summary(c(table(encounter$patientid)))
-
-# Merge number of encounters onto data set with one observation per patient
-numvisit <- encounter[!duplicated(encounter$patientid),c("patientid","numvisit")]
-data1 <- merge(data1,numvisit)
-
-## Analyze association between depression and T2DM with and without conditioning on visit intensity
-dep.glm1 <- glm(T2DMcart.class ~ firstage + factor(race) + gender + dep, data = data1, family = "binomial")
-summary(dep.glm1)
-
-dep.glm2 <- glm(T2DMcart.class ~ firstage + factor(race) + gender + dep + numvisit, data = data1, family = "binomial")
-summary(dep.glm2)
-
-# compare odds ratios before and after adjustment
-cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
-
-##-------------------------------------------------------------##
-## Tutorial 3
-##-------------------------------------------------------------##
-
-##-------------------------------------------------------------
-## A. Outcome Misclassification
+# B. Outcome Misclassification
 
 ## Analysis without additional adjustment variables
 
-# first compute sensitivity and specificity using validation data
-sens <- mean(as.numeric(as.character(data1$T2DMcart.class[data1$T2DMv == 1 & !is.na(data1$T2DMv)])))
-sens
-
-spec <- 1-mean(as.numeric(as.character(data1$T2DMcart.class[data1$T2DMv == 0 & !is.na(data1$T2DMv)])))
-spec
-
 # compute odds ratios based on 2x2 table
-a <- sum(data1$T2DMcart.class == 1 & data1$dep == 1)
-b <- sum(data1$T2DMcart.class == 0 & data1$dep == 1)
-c <- sum(data1$T2DMcart.class == 1 & data1$dep == 0)
-d <- sum(data1$T2DMcart.class == 0 & data1$dep == 0)
+a <- sum(case1$T2DMcart.class == 1 & case1$rs7903146 == 1)
+b <- sum(case1$T2DMcart.class == 0 & case1$rs7903146 == 1)
+c <- sum(case1$T2DMcart.class == 1 & case1$rs7903146 == 0)
+d <- sum(case1$T2DMcart.class == 0 & case1$rs7903146 == 0)
 
 or.std <- a*d/(b*c) # standard odds ratio
 or.mh <- (a/(a+b)-(1-spec))/(c/(c+d)-(1-spec))*(sens-c/(c+d))/(sens-a/(a+b)) # Magder and Hughes adjusted odds ratio
@@ -496,18 +164,18 @@ post.prob <- function(phat,S,sens,spec){
 
 # EM algorithm proposed by Magder and Hughes
 mh.EM <- function(fmla, sens, spec, tol = 10^-4, maxit = 10){
-  data1$Y <- data1$T2DMcart.class
-  or1 <- glm(fmla, data = data1, family = "binomial")
+  case1$Y <- case1$T2DMcart.class
+  or1 <- glm(fmla, data = case1, family = "binomial")
   p0 <- predict(or1, type = "response")
   dif <- 1
   j <- 0
   while (dif > tol & j < maxit){
-    w <- post.prob(p0,data1$T2DMcart.class,sens,spec)
-    data2 <- rbind(data1, data1)
+    w <- post.prob(p0,case1$T2DMcart.class,sens,spec)
+    data2 <- rbind(case1, case1)
     data2$w <- c(w,1-w)
-    data2$Y <- c(rep(1,nrow(data1)),rep(0,nrow(data1)))
+    data2$Y <- c(rep(1,nrow(case1)),rep(0,nrow(case1)))
     suppressWarnings(or2 <- glm(fmla, data = data2, family = "binomial", weights = w))
-    p0 <- predict(or2, type = "response", newdata = data1)
+    p0 <- predict(or2, type = "response", newdata = case1)
     dif <- max(abs(or1$coef-or2$coef))
     or1 <- or2
     j <- j+1
@@ -517,61 +185,66 @@ mh.EM <- function(fmla, sens, spec, tol = 10^-4, maxit = 10){
 }
 
 # fit model
-fmla.dep <- formula("Y ~ firstage + factor(race) + gender + dep")
-mod.MH <- mh.EM(fmla.dep, sens, spec, maxit = 100)
+fmla.gen <- formula("Y ~ firstage + factor(race) + gender + rs7903146")
+mod.MH <- mh.EM(fmla.gen, sens, spec, maxit = 100)
 summary(mod.MH)
 
 # naive model for comparison
-mod.cart <- glm(T2DMcart.class ~ firstage + factor(race) + gender + dep, data = data1, family = "binomial")
+mod.cart <- glm(T2DMcart.class ~ firstage + factor(race) + gender + rs7903146, data = case1, family = "binomial")
 summary(mod.cart)
 
-
 # model based on validation data only
-mod.valid <- glm(T2DMv ~ firstage + factor(race) + gender + dep, data = data1, family = "binomial")
+mod.valid <- glm(T2DMv ~ firstage + factor(race) + gender + rs7903146, data = case1, family = "binomial")
 summary(mod.valid)
-
 
 # Compare odds ratios from all three models
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
 
 ##-------------------------------------------------------------##
-## B. Using Probabilistic Phenotypes
+## Tutorial 2 - Clinical trial with EHR-derived external control arm
+##-------------------------------------------------------------##
 
-# Function for bias correction with known values for mu0 and mu1
-# link can take values "ident", "log", or "logistic"
-bias.adjust.prob <- function(fmla,mu0,mu1,p0,link = "ident"){
-  
-  # regress probabilistic phenotype on predictors
-  fitp = lm(fmla, data = data1)
-  
-  # make bias correctioon
-  betastar = fitp$coef/(mu1 - mu0)
-  
-  if (link == "ident"){
-    betastar = betastar
-  } else if (link == "log"){
-    betastar = betastar/p0
-  } else if (link == "logit"){
-    betastar <- betastar/(p0*(1-p0))
-  } else return("unsupported link function")
-  
-  # return association parameters (drop intercept)
-  return(betastar[-1])
-}
+# Read in data
+case2 <- read.csv("https://raw.githubusercontent.com/rhubb/ENAR_Short_Course/master/data/case2.csv", head=T)
 
-# use validation data to compute mean phenotype probability among true cases and controls
-data1$prob <- inv.logit(data1$T2DMglm)
+#  A. Matching
 
-mu0 <- mean(data1$prob[data1$T2DMv == 0 & !is.na(data1$T2DMv)],na.rm = T)
-mu1 <- mean(data1$prob[data1$T2DMv == 1 & !is.na(data1$T2DMv)], na.rm = T)
+# Mahalanobis matching
+mah.match <- matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "mahalanobis")
+mah.data <- match.data(mah.match)
 
-# use mean of predicted probabilities to estimate prevalence
-p0 <- mean(inv.logit(data1$T2DMglm),na.rm = T)
+# Propensity score matching
+ps.match <- matchit(trial ~ age + race + chemo + et + cap + pr, data = case2, method = "nearest", distance = "glm", caliper = 0.1)
+ps.data <- match.data(ps.match)
 
-# fit model
-fmla.prob <- formula("prob ~ firstage + factor(race) + gender + dep")
+# check balance in patient characteristics before and after matching
+summary(mah.match, addlvariables = ~ et*race) # generate balance statistics before and after Mahalanobis matching
+plot(summary(mah.match), var.order = "unmatched")
 
-mod.prob <- bias.adjust.prob(fmla.prob, mu0, mu1, p0, link = "logit")
+summary(ps.match, addlvariables = ~ et*race, un = FALSE) # generate balance statistics after propensity score matching
+plot(summary(ps.match), var.order = "unmatched")
+plot(ps.match, type = "histogram") # historgam of propensity scores before and after matching
 
-# compare with results using validation data
-data.frame(Adj = exp(mod.prob), Validation = exp(mod.valid$coef)[-1])
+# B. Analysis of matched data  
+
+## unadjusted comparison of trial and EHR patients prior to matching
+COL = rainbow_hcl(2)
+plot(survfit(Surv(time,Event)~ trial, data = case2), xlim = c(0,28), col = COL, lwd = 2, mark.time = T)
+legend("topright",col = COL, legend = c("Trial","RWD"), lty = 1, lwd = 2)
+
+# Analysis of data prior to matching
+mod1 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = case2)
+summary(mod1)
+
+# Mahalanobis matching
+mod2 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = mah.data)
+summary(mod2)
+
+# Propensity score matching
+mod3 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = ps.data)
+summary(mod3)
+
+##-------------------------------------------------------------##
+## Tutorial 3 - Distributed analysis
+##-------------------------------------------------------------##
+

@@ -1,4 +1,4 @@
----
+----
 title: "Case Studies in Generating Real World Evidence From Real World Data - Tutorials"
 output:
   html_document:
@@ -41,7 +41,7 @@ library(survival)
 library(colorspace)
 ```
 
-#### Tutorial 1 - Addressing phentyping error in the study of diabetes
+#### Tutorial 1 - Addressing phenotyping error in the study of diabetes
 
 The case study for this tutorial is:
 
