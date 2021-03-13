@@ -16,9 +16,9 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 **[References](ENAR_Short_Course_References.pdf)**
 
-**Materials for tutorials**
+##### Materials for tutorials
 
-##### Tutorials 1 and 2
+**Tutorials 1 and 2**
 
 * [Tutorial](ENAR_ShortCourse_Tutorial12.html)
 
@@ -30,7 +30,7 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
   * [Case study 1 data](/data/case1.csv) 
   * [Case study 2 data](/data/case2.csv)
 
-##### Tutorial 3
+**Tutorial 3**
 
 * [Tutorial](ENAR_ShortCourse_Tutorial3.html)
 
