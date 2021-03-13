@@ -244,7 +244,3 @@ summary(mod2)
 mod3 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = ps.data)
 summary(mod3)
 
-##-------------------------------------------------------------##
-## Tutorial 3 - Distributed analysis
-##-------------------------------------------------------------##
-
