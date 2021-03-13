@@ -18,14 +18,27 @@ Participants in the ENAR 2021 Short Course "Case Studies in Generating Real Worl
 
 **Materials for tutorials**
 
-* [Tutorials](ENAR_ShortCourse_Tutorials.html)
+##### Tutorials 1 and 2
 
-* [Tutorials with solutions](ENAR_ShortCourse_Tutorials_Solutions.html)
+* [Tutorial](ENAR_ShortCourse_Tutorial12.html)
 
-* [R code](ENAR_ShortCourse_Tutorials_Code.R)
+* [Tutorials with solutions](ENAR_ShortCourse_Tutorial12_Solutions.html)
+
+* [R code](ENAR_ShortCourse_Tutorial12_Code.R)
 
 * Data sets
   * [Case study 1 data](/data/case1.csv) 
   * [Case study 2 data](/data/case2.csv)
-  * [Case study 3 data](/data/case3.csv)
 
+##### Tutorial 3
+
+* [Tutorial](ENAR_ShortCourse_Tutorial3.html)
+
+* [Tutorials with solutions](ENAR_ShortCourse_Tutorial3_Solutions.html)
+
+* [R code](ENAR_ShortCourse_Tutorial3_Code.R)
+
+* Data sets
+  * [Case study 3 ODAL data](/data/case3_ODAL.csv) 
+  * [Case study 3 ODAC data](/data/case3_ODAC.csv)
+  * [Case study 3 ODAH data](/data/case3_ODAH.csv)
