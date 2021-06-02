@@ -348,7 +348,7 @@ B\. **Analysis of matched data** After matching we will investigate the associat
 ## unadjusted comparison of trial and EHR patients prior to matching
 COL = rainbow_hcl(2)
 plot(survfit(Surv(time,Event)~ trial, data = case2), xlim = c(0,28), col = COL, lwd = 2, mark.time = T)
-legend("topright",col = COL, legend = c("Trial","RWD"), lty = 1, lwd = 2)
+legend("topright",col = COL, legend = c("RWD","Trial"), lty = 1, lwd = 2)
 
 # Analysis of data prior to matching
 mod1 <- coxph(Surv(time,Event)~ trial + age + race + chemo + et + cap + pr, data = case2)
