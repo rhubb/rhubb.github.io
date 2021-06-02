@@ -1,4 +1,4 @@
-## Practical Solutions for Working with Electronic Health Records data
+## Practical Solutions for Working with Electronic Health Records Data
 ### [Yong Chen, PhD](https://penncil.med.upenn.edu)
 ### [Rebecca Hubbard, PhD](https://www.med.upenn.edu/ehr-stats)
 
@@ -12,7 +12,7 @@ This short course is of interest to researchers without prior experience working
 ### COURSE MATERIALS
 
 
-Participants in the JSM 2021 Short Course "Case Studies in Generating Real World Evidence From Real World Data" should download all of the files below.
+Participants in the JSM 2021 Short Course "Practical Solutions for Working with Electronic Health Records Data" should download all of the files below.
 
 **[Slides](JSM_Short_Course_2021.pdf)**
 
