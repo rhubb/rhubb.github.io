@@ -1,42 +1,122 @@
-## R code for Analysis of Big Healthcare Databases exercises
+---
+title: "Analysis of Big Healthcare Databases - Tutorials"
+output:
+  html_document:
+    toc: false 
+    depth: 3 
+    theme: paper 
+    highlight: tango
+---
 
-##-------------------------------------------------------------##
-## Read in data
-##-------------------------------------------------------------##
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 400)
+```  
+
+***
+
+#### Introduction
+
+The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the short course to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. **Please note that the data we will be working with are simulated and intended for instructional purposes only.** Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course I will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.
+
+The synthetic data we will be working with are based on the PEDSnet study of pediatric type 2 diabetes described in class. The data are divided into four files which can be downloaded from GitHub. The four files contain data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. The four files can be linked using the variable patientid.
 
 #### Encounter data
+This data set includes one row per outpatient encounter. 
+```{r, eval = TRUE, echo = TRUE}
 encounter = read.csv("https://raw.githubusercontent.com/rhubb/rhubb.github.io/master/data/encounter.csv", head=T)
- 
+```
+<blockquote style="font-size:12px">
+patientid:  Patient ID
+
+servicedate: Date of the encounter
+
+age:  Age in years
+
+race: Provider-reported patient race
+
+proc:  CPT codes for procedure performed; codes 99211-99215 are for evaluation and management of established patients in an outpatient setting
+
+diag: ICD-9 (before 10/1/2015) or ICD-10 (on or after 10/1/2015) for primary diagnosis; a few diagnosis codes of interest are T2DM ICD-9 = "250.00"; T2DM ICD-10 = "E11.9"; T1DM ICD-9 = "250.01"; T1DM ICD-10 = "E10.9"; Depression ICD-9 = "296.2","296.9","296.3","300.4"; Depression ICD-10 = "F32.9","F41.8","F33.9"
+
+prov: CMS provider specialty code; a few provider codes of potential interest are General Practice = "1", General Dermatology = "7", Family practice = "8", Internal Medicine = "11", Neurology = "13", Ophthalmology = "18", Psychiatry = "26", Pediatric Medicine = "37", Endocrinology = "46"
+
+</blockquote>
+
 #### Prescription medication data
+This data set includes one row per prescription recorded on the date of an outpatient encounter included in the encounters file. 
+```{r, eval = TRUE, echo = TRUE}
 meds = read.csv("https://raw.githubusercontent.com/rhubb/rhubb.github.io/master/data/meds.csv", head=T)
+```
+
+<blockquote style="font-size:12px">
+patientid:  Patient ID
+
+presdate: Date of the prescription
+
+drug:  Drug class
+
+</blockquote>
 
 #### Measures data
+This data set includes one row per anthropometric or laboratory measurement recorded on the date of an outpatient encounter included in the encounters file. 
+```{r, eval = TRUE, echo = TRUE}
 measures = read.csv("https://raw.githubusercontent.com/rhubb/rhubb.github.io/master/data/measures.csv", head=T)
+```
+
+<blockquote style="font-size:12px">
+patientid:  Patient ID
+
+servicedate: Date of measurement
+
+measurement: Numeric value of the measurement
+
+measuretype: Description of the laboratory or anthropometric test (height in cm, weight in kg, glucose in mg/dl, hemoglobin A1c (hba1c) in \%, cholesterol (chol) in mg/dl)
+
+</blockquote>
 
 #### Validation data
+This data set includes one row per patient for 998 patients randomly selected for manual chart review to determine gold-standard type 2 diabetes status. 
+```{r, eval = TRUE, echo = TRUE}
 validation = read.csv("https://raw.githubusercontent.com/rhubb/rhubb.github.io/master/data/validation.csv", head=T)
+```
 
-##-------------------------------------------------------------##
-## Install R packages
-##-------------------------------------------------------------##
+<blockquote style="font-size:12px">
+patientid:  Patient ID
 
+T2DMv: Type 2 diabetes status based on manual chart review (1 = T2DM, 0 = no evidence of T2DM)
+
+</blockquote>
+
+#### Install R packages
+- For these exercises you will need the [_rpart_](https://cran.r-project.org/web/packages/rpart/index.html), [_pROC_](https://cran.r-project.org/web/packages/pROC/index.html), [_boot_](https://cran.r-project.org/web/packages/boot/index.html), and [_gee_](https://cran.r-project.org/web/packages/gee/index.html) packages.
+- If you have not already, please install these packages now.
+```{r, eval=FALSE}
 install.packages("rpart")
 install.packages("pROC")
 install.packages("boot")
 install.packages("gee")
-
 library(rpart)
 library(pROC)
 library(boot)
 library(gee)
+```
+```{r, eval=TRUE, message = FALSE, echo = FALSE}
+library(rpart)
+library(pROC)
+library(boot)
+library(gee)
+```
 
-##-------------------------------------------------------------##
-## Exercises
-##-------------------------------------------------------------##
+### Tutorials
 
-##-------------------------------------------------------------
-## 1. Data Quality Evaluation
+#### Tutorial 1
 
+A\. **Data Quality Evaluation.** The first task in analysis of EHR data is data exploration and visualization to identify and resolve data errors. Focusing on the measures data set, we will carry out a descriptive analysis. 
+
+* Are there any observations that seem likely to be errors? 
+* What are some techniques we can use to identify errors? 
+* What are some options for handling possibly erroneous data points once they have been identified?
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
 summary(measures)
@@ -153,9 +233,14 @@ hist(bmi$bmi)
 plot(bmi$weight,bmi$bmi)
 plot(bmi$height,bmi$bmi)
 
-##-------------------------------------------------------------
-# 2. Phenotype Extraction
+```
 
+B\. **Phenotype Extraction.** We will next explore a few alternative approaches to deriving a type 2 diabetes (T2DM) phenotype from this data set. 
+
+* Reduce the data to one observation per patient considering what data elements might be of use at the patient-level. 
+* Use the validation data to develop a prediction model for T2DM using logistic regression and CART. 
+* Apply the eMERGE T2DM rule to these data. How do the sensitivity, specificity, PPV, and NPV of these approaches compare?
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
 ## Aggregate data to the patient level
 
 # aggregate numeric measurements using the earliest, mean and maximum observed values
@@ -177,9 +262,9 @@ encounter$firstage <- unsplit(sapply(split(encounter$age,encounter$patientid),mi
 encounter$basedate <- rep(encounter$servicedate[!duplicated(encounter$patientid)], time = c(table(encounter$patientid))) # date of first visit
 encounter$elapsed <- as.Date(encounter$servicedate) - as.Date(encounter$basedate)
 encounter$anyvisit1yr <- unsplit(sapply(split(encounter$elapsed,encounter$patientid), # binary indicator of any visit in first year of follow-up
-                                        function(x){sum(x[x>0] <= 365) > 0}),encounter$patientid)
+                                   function(x){sum(x[x>0] <= 365) > 0}),encounter$patientid)
 chol <- merge(chol,data.frame(patientid = encounter$patientid, basedate = encounter$basedate)[!duplicated(encounter$patientid),], 
-              all.x = TRUE, all.y = FALSE)
+                              all.x = TRUE, all.y = FALSE)
 chol$elapsed <- as.Date(chol$servicedate) - as.Date(chol$basedate)
 chol$cholmean1yr <- unsplit(sapply(split(data.frame(chol = chol$chol, days = chol$elapsed),chol$patientid),
                                    function(x){mean(x$chol[x$days <= 365 & x$days > 0],na.rm = T)}),chol$patientid)
@@ -238,7 +323,7 @@ meds$anymetformin <- unsplit(sapply(split(meds$drug,meds$patientid),anycode,code
 
 # metformin prescription precedes insulin prescription
 meds$metforminfirst <- unsplit(sapply(split(data.frame(dates=meds$presdate,drugs=meds$drug),
-                                            meds$patientid),codeorder),meds$patientid)
+                       meds$patientid),codeorder),meds$patientid)
 
 
 ## Create merged dataset with one observation per patient and aggregate variables
@@ -366,10 +451,16 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 
 # eMERGE NPV
 1 - mean(data1$T2DMv[data1$T2DMemerge == 0],na.rm = T)
+```
 
+#### Tutorial 2
 
-##-------------------------------------------------------------
-## 3. Missing Data
+A\. **Missing Data.** Next we will explore missing data in an EHR-derived data set. Suppose we want to use our T2DM phenotype from exercise 2 to explore the relationship between total cholesterol and T2DM diagnosis. 
+
+* Using mean cholesterol in the one year period after baseline as our exposure measure, how much missingness is there? 
+* Is missingness related to any other factors in the data set? 
+* Use IPW with a single module or multiple modules to account for missingness in your analysis of the association between total cholesterol and T2DM. 
+```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -429,9 +520,13 @@ summary(chol.mod2)
 # Compare parameter estimates from the two models
 cbind(chol.mod1$coef,chol.mod2$coef)
 
-##-------------------------------------------------------------
-## 4. Confounding by Utilization Intensity
+```
 
+B\. **Confounding by Utilization Intensity.** Accounting for confounding due to variation in the intensity of healthcare utilization is important for EHR-based analyses. 
+
+* How much variability is there in the intensity of utilization in this data set? 
+* Use a measure of intensity of utilization to account for informed presence bias in an analysis of the association between depression diagnosis and T2DM.
+```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
 summary(c(table(encounter$patientid)))
@@ -450,9 +545,13 @@ summary(dep.glm2)
 # compare odds ratios before and after adjustment
 cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
 
-##-------------------------------------------------------------
-## 5. Outcome Misclassification
+```
 
+C\. **Outcome Misclassification.** For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and depression diagnosis.
+
+* What is the crude odds ratios for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
+* Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
 ## Analysis without additional adjustment variables
 
 # first compute sensitivity and specificity using validation data
@@ -522,10 +621,13 @@ summary(mod.valid)
 
 # Compare odds ratios from all three models
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
+```
 
-##-------------------------------------------------------------##
-## 6. Using Probabilistic Phenotypes
+D\. **Using Probabilistic Phenotypes.** Finally, we will explore correcting for error in our phenotype using a continuous phenotype.
 
+* Using predicted probabilities from your logistic regression-based phenotype derived in exercise 2, estimate the association between having a depression diagnosis code and T2DM. 
+* How do your results change if you use the bias correction approach described in lecture vs the uncorrected results?
+```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"
 bias.adjust.prob <- function(fmla,mu0,mu1,p0,link = "ident"){
@@ -564,3 +666,5 @@ mod.prob <- bias.adjust.prob(fmla.prob, mu0, mu1, p0, link = "logit")
 
 # compare with results using validation data
 data.frame(Adj = exp(mod.prob), Validation = exp(mod.valid$coef)[-1])
+
+```
