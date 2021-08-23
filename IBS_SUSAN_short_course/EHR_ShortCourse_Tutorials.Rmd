@@ -116,7 +116,7 @@ A\. **Data Quality Evaluation.** The first task in analysis of EHR data is data 
 * Are there any observations that seem likely to be errors? 
 * What are some techniques we can use to identify errors? 
 * What are some options for handling possibly erroneous data points once they have been identified?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
 summary(measures)
@@ -240,7 +240,7 @@ B\. **Phenotype Extraction.** We will next explore a few alternative approaches 
 * Reduce the data to one observation per patient considering what data elements might be of use at the patient-level. 
 * Use the validation data to develop a prediction model for T2DM using logistic regression and CART. 
 * Apply the eMERGE T2DM rule to these data. How do the sensitivity, specificity, PPV, and NPV of these approaches compare?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Aggregate data to the patient level
 
 # aggregate numeric measurements using the earliest, mean and maximum observed values
@@ -460,7 +460,7 @@ A\. **Missing Data.** Next we will explore missing data in an EHR-derived data s
 * Using mean cholesterol in the one year period after baseline as our exposure measure, how much missingness is there? 
 * Is missingness related to any other factors in the data set? 
 * Use IPW with a single module or multiple modules to account for missingness in your analysis of the association between total cholesterol and T2DM. 
-```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = TRUE, cache.lazy = FALSE}
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -491,7 +491,7 @@ data1$pvisit1yr[!is.na(data1$firstbmi)] <- predict(anyvisit.mod, type = "respons
 misschol.mod2 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$anyvisit1yr == 1,], family = binomial)
 summary(misschol.mod2)
 
-# probability of having a choletserol measure given an encounter occurred in first year
+# probability of having a cholesterol measure given an encounter occurred in first year
 data1$pobschol2[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod2, type = "response", newdata = data1[!is.na(data1$firstbmi),])
 
 # create combined probability of having an observed cholesterol value using the two stage model
@@ -526,7 +526,7 @@ B\. **Confounding by Utilization Intensity.** Accounting for confounding due to 
 
 * How much variability is there in the intensity of utilization in this data set? 
 * Use a measure of intensity of utilization to account for informed presence bias in an analysis of the association between depression diagnosis and T2DM.
-```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = TRUE, cache.lazy = FALSE}
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
 summary(c(table(encounter$patientid)))
@@ -551,7 +551,7 @@ C\. **Outcome Misclassification.** For binary phenotypes we can account for erro
 
 * What is the crude odds ratios for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
 * Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Analysis without additional adjustment variables
 
 # first compute sensitivity and specificity using validation data
@@ -627,7 +627,7 @@ D\. **Using Probabilistic Phenotypes.** Finally, we will explore correcting for 
 
 * Using predicted probabilities from your logistic regression-based phenotype derived in exercise 2, estimate the association between having a depression diagnosis code and T2DM. 
 * How do your results change if you use the bias correction approach described in lecture vs the uncorrected results?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"
 bias.adjust.prob <- function(fmla,mu0,mu1,p0,link = "ident"){

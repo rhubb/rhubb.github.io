@@ -1056,7 +1056,7 @@ summary {
 ## AIC: 3741.6
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1"></a><span class="co"># probability of having a choletserol measure given an encounter occurred in first year</span></span>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1"></a><span class="co"># probability of having a cholesterol measure given an encounter occurred in first year</span></span>
 <span id="cb75-2"><a href="#cb75-2"></a>data1<span class="op">$</span>pobschol2[<span class="op">!</span><span class="kw">is.na</span>(data1<span class="op">$</span>firstbmi)] &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">-</span><span class="kw">predict</span>(misschol.mod2, <span class="dt">type =</span> <span class="st">&quot;response&quot;</span>, <span class="dt">newdata =</span> data1[<span class="op">!</span><span class="kw">is.na</span>(data1<span class="op">$</span>firstbmi),])</span>
 <span id="cb75-3"><a href="#cb75-3"></a></span>
 <span id="cb75-4"><a href="#cb75-4"></a><span class="co"># create combined probability of having an observed cholesterol value using the two stage model</span></span>

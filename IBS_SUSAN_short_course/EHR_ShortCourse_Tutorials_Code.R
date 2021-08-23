@@ -31,11 +31,11 @@ library(boot)
 library(gee)
 
 ##-------------------------------------------------------------##
-## Exercises
+## Tutorials
 ##-------------------------------------------------------------##
 
 ##-------------------------------------------------------------
-## 1. Data Quality Evaluation
+## 1A. Data Quality Evaluation
 
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
@@ -154,7 +154,7 @@ plot(bmi$weight,bmi$bmi)
 plot(bmi$height,bmi$bmi)
 
 ##-------------------------------------------------------------
-# 2. Phenotype Extraction
+# 1B. Phenotype Extraction
 
 ## Aggregate data to the patient level
 
@@ -369,7 +369,7 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 
 
 ##-------------------------------------------------------------
-## 3. Missing Data
+## 2A. Missing Data
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -400,7 +400,7 @@ data1$pvisit1yr[!is.na(data1$firstbmi)] <- predict(anyvisit.mod, type = "respons
 misschol.mod2 <- glm(misschol ~ firstage + race + gender + firstbmi, data = data1[data1$anyvisit1yr == 1,], family = binomial)
 summary(misschol.mod2)
 
-# probability of having a choletserol measure given an encounter occurred in first year
+# probability of having a cholesterol measure given an encounter occurred in first year
 data1$pobschol2[!is.na(data1$firstbmi)] <- 1-predict(misschol.mod2, type = "response", newdata = data1[!is.na(data1$firstbmi),])
 
 # create combined probability of having an observed cholesterol value using the two stage model
@@ -430,7 +430,7 @@ summary(chol.mod2)
 cbind(chol.mod1$coef,chol.mod2$coef)
 
 ##-------------------------------------------------------------
-## 4. Confounding by Utilization Intensity
+## 2B. Confounding by Utilization Intensity
 
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
@@ -451,7 +451,7 @@ summary(dep.glm2)
 cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
 
 ##-------------------------------------------------------------
-## 5. Outcome Misclassification
+## 2C. Outcome Misclassification
 
 ## Analysis without additional adjustment variables
 
@@ -524,7 +524,7 @@ summary(mod.valid)
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
 
 ##-------------------------------------------------------------##
-## 6. Using Probabilistic Phenotypes
+## 2D. Using Probabilistic Phenotypes
 
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"
