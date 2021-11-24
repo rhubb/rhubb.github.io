@@ -16,13 +16,13 @@ Participants in the Deming conference tutorial should download all of the files 
 
 **[References](EHR_Short_Course_References.pdf)**
 
-**Materials for tutorials**
+**Materials for R tutorial**
 
-* [Tutorials](EHR_ShortCourse_Tutorials.html)
+* [Exercises](EHR_ShortCourse_Tutorials.html)
 
-* [Worked tutorials](EHR_ShortCourse_Tutorials_Worked.html)
+* [Worked exercises](EHR_ShortCourse_Tutorials_Worked.html)
 
-* [R code](EHR_ShortCourse_Tutorials_Code.R)
+* [R code](EHR_Tutorial_Code.R)
 
 * Data sets
   * [Encounter data](/data/encounter.csv) 
