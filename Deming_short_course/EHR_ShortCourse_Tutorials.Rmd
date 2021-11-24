@@ -1,5 +1,5 @@
 ---
-title: "Analysis of Big Healthcare Databases - Tutorials"
+title: "Analysis of Big Healthcare Databases - R Tutorial"
 output:
   html_document:
     toc: false 
@@ -16,7 +16,7 @@ options(width = 400)
 
 #### Introduction
 
-The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the short course to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. **Please note that the data we will be working with are simulated and intended for instructional purposes only.** Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course I will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.
+The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the tutorial to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. **Please note that the data we will be working with are simulated and intended for instructional purposes only.** Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course we will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.
 
 The synthetic data we will be working with are based on the PEDSnet study of pediatric type 2 diabetes described in class. The data are divided into four files which can be downloaded from GitHub. The four files contain data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. The four files can be linked using the variable patientid.
 
@@ -107,16 +107,14 @@ library(boot)
 library(gee)
 ```
 
-### Tutorials
+### R Tutorials
 
-#### Tutorial 1
-
-A\. **Data Quality Evaluation.** The first task in analysis of EHR data is data exploration and visualization to identify and resolve data errors. Focusing on the measures data set, we will carry out a descriptive analysis. 
+1\. **Data Quality Evaluation.** The first task in analysis of EHR data is data exploration and visualization to identify and resolve data errors. Focusing on the measures data set, we will carry out a descriptive analysis. 
 
 * Are there any observations that seem likely to be errors? 
 * What are some techniques we can use to identify errors? 
 * What are some options for handling possibly erroneous data points once they have been identified?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Use summary statistics and plots to investigate basic characteristics of the data
 
 summary(measures)
@@ -235,12 +233,12 @@ plot(bmi$height,bmi$bmi)
 
 ```
 
-B\. **Phenotype Extraction.** We will next explore a few alternative approaches to deriving a type 2 diabetes (T2DM) phenotype from this data set. 
+2\. **Phenotype Extraction.** We will next explore a few alternative approaches to deriving a type 2 diabetes (T2DM) phenotype from this data set. 
 
 * Reduce the data to one observation per patient considering what data elements might be of use at the patient-level. 
 * Use the validation data to develop a prediction model for T2DM using logistic regression and CART. 
 * Apply the eMERGE T2DM rule to these data. How do the sensitivity, specificity, PPV, and NPV of these approaches compare?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Aggregate data to the patient level
 
 # aggregate numeric measurements using the earliest, mean and maximum observed values
@@ -453,14 +451,12 @@ mean(data1$T2DMv[data1$T2DMemerge == 1],na.rm = T)
 1 - mean(data1$T2DMv[data1$T2DMemerge == 0],na.rm = T)
 ```
 
-#### Tutorial 2
-
-A\. **Missing Data.** Next we will explore missing data in an EHR-derived data set. Suppose we want to use our T2DM phenotype from exercise 2 to explore the relationship between total cholesterol and T2DM diagnosis. 
+3\. **Missing Data.** Next we will explore missing data in an EHR-derived data set. Suppose we want to use our T2DM phenotype from exercise 2 to explore the relationship between total cholesterol and T2DM diagnosis. 
 
 * Using mean cholesterol in the one year period after baseline as our exposure measure, how much missingness is there? 
 * Is missingness related to any other factors in the data set? 
 * Use IPW with a single module or multiple modules to account for missingness in your analysis of the association between total cholesterol and T2DM. 
-```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = TRUE, cache.lazy = FALSE}
 
 ## For most real examples we would want to define our exposure (cholesterol) in a window around
 ## cohort entry. For this toy example we will use the one year period after cohort entry. 
@@ -522,11 +518,11 @@ cbind(chol.mod1$coef,chol.mod2$coef)
 
 ```
 
-B\. **Confounding by Utilization Intensity.** Accounting for confounding due to variation in the intensity of healthcare utilization is important for EHR-based analyses. 
+4\. **Confounding by Utilization Intensity.** Accounting for confounding due to variation in the intensity of healthcare utilization is important for EHR-based analyses. 
 
 * How much variability is there in the intensity of utilization in this data set? 
 * Use a measure of intensity of utilization to account for informed presence bias in an analysis of the association between depression diagnosis and T2DM.
-```{r, eval = FALSE, echo = FALSE, cache = TRUE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = TRUE, cache.lazy = FALSE}
 # Number of encounters per patient
 encounter$numvisit <- rep(c(table(encounter$patientid)), times = c(table(encounter$patientid)))
 summary(c(table(encounter$patientid)))
@@ -547,11 +543,11 @@ cbind(c(exp(dep.glm1$coef),NA),exp(dep.glm2$coef))
 
 ```
 
-C\. **Outcome Misclassification.** For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and depression diagnosis.
+5\. **Outcome Misclassification.** For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and depression diagnosis.
 
 * What is the crude odds ratios for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
 * Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 ## Analysis without additional adjustment variables
 
 # first compute sensitivity and specificity using validation data
@@ -623,11 +619,11 @@ summary(mod.valid)
 data.frame(MH = exp(mod.MH$coef), Naive = exp(mod.cart$coef), Validation = exp(mod.valid$coef))
 ```
 
-D\. **Using Probabilistic Phenotypes.** Finally, we will explore correcting for error in our phenotype using a continuous phenotype.
+6\. **Using Probabilistic Phenotypes.** Finally, we will explore correcting for error in our phenotype using a continuous phenotype.
 
 * Using predicted probabilities from your logistic regression-based phenotype derived in exercise 2, estimate the association between having a depression diagnosis code and T2DM. 
 * How do your results change if you use the bias correction approach described in lecture vs the uncorrected results?
-```{r, eval = FALSE, echo = FALSE, cache = FALSE, cache.lazy = FALSE}
+```{r, eval = TRUE, echo = TRUE, cache = FALSE, cache.lazy = FALSE}
 # Function for bias correction with known values for mu0 and mu1
 # link can take values "ident", "log", or "logistic"
 bias.adjust.prob <- function(fmla,mu0,mu1,p0,link = "ident"){

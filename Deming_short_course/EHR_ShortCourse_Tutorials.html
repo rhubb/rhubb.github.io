@@ -11,7 +11,7 @@
 
 
 
-<title>Analysis of Big Healthcare Databases - Tutorials</title>
+<title>Analysis of Big Healthcare Databases - R Tutorial</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -481,7 +481,7 @@ summary {
 
 
 
-<h1 class="title toc-ignore">Analysis of Big Healthcare Databases - Tutorials</h1>
+<h1 class="title toc-ignore">Analysis of Big Healthcare Databases - R Tutorial</h1>
 
 </div>
 
@@ -489,7 +489,7 @@ summary {
 <hr />
 <div id="introduction" class="section level4">
 <h4>Introduction</h4>
-<p>The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the short course to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course I will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.</p>
+<p>The goal of these exercises is to explore the structure of an electronic health records (EHR)-derived data set and some of the common challenges encountered in working with healthcare-derived data. We will also practice implementing some statistical methods introduced throughout the tutorial to address these issues. To do this we will use a synthetic data set simulated to mimic the structure of a real EHR-derived data set. <strong>Please note that the data we will be working with are simulated and intended for instructional purposes only.</strong> Real EHR data generally have access restrictions due to privacy/confidentiality issues and HIPAA protections. At the end of the course we will provide links for a few public access repositories that provide real EHR data. However, these generally do require a data use agreement and thus a few steps are involved in getting access.</p>
 <p>The synthetic data we will be working with are based on the PEDSnet study of pediatric type 2 diabetes described in class. The data are divided into four files which can be downloaded from GitHub. The four files contain data from 9,930 patients age 10-20 years who had at least one outpatient encounter between 2001 and 2019. The four files can be linked using the variable patientid.</p>
 </div>
 <div id="encounter-data" class="section level4">
@@ -551,47 +551,41 @@ summary {
 <span id="cb5-7"><a href="#cb5-7"></a><span class="kw">library</span>(boot)</span>
 <span id="cb5-8"><a href="#cb5-8"></a><span class="kw">library</span>(gee)</span></code></pre></div>
 </div>
-<div id="tutorials" class="section level3">
-<h3>Tutorials</h3>
-<div id="tutorial-1" class="section level4">
-<h4>Tutorial 1</h4>
-<p>A. <strong>Data Quality Evaluation.</strong> The first task in analysis of EHR data is data exploration and visualization to identify and resolve data errors. Focusing on the measures data set, we will carry out a descriptive analysis.</p>
+<div id="r-tutorials" class="section level3">
+<h3>R Tutorials</h3>
+<p>1. <strong>Data Quality Evaluation.</strong> The first task in analysis of EHR data is data exploration and visualization to identify and resolve data errors. Focusing on the measures data set, we will carry out a descriptive analysis.</p>
 <ul>
 <li>Are there any observations that seem likely to be errors?</li>
 <li>What are some techniques we can use to identify errors?</li>
 <li>What are some options for handling possibly erroneous data points once they have been identified?</li>
 </ul>
-<p>B. <strong>Phenotype Extraction.</strong> We will next explore a few alternative approaches to deriving a type 2 diabetes (T2DM) phenotype from this data set.</p>
+<p>2. <strong>Phenotype Extraction.</strong> We will next explore a few alternative approaches to deriving a type 2 diabetes (T2DM) phenotype from this data set.</p>
 <ul>
 <li>Reduce the data to one observation per patient considering what data elements might be of use at the patient-level.</li>
 <li>Use the validation data to develop a prediction model for T2DM using logistic regression and CART.</li>
 <li>Apply the eMERGE T2DM rule to these data. How do the sensitivity, specificity, PPV, and NPV of these approaches compare?</li>
 </ul>
-</div>
-<div id="tutorial-2" class="section level4">
-<h4>Tutorial 2</h4>
-<p>A. <strong>Missing Data.</strong> Next we will explore missing data in an EHR-derived data set. Suppose we want to use our T2DM phenotype from exercise 2 to explore the relationship between total cholesterol and T2DM diagnosis.</p>
+<p>3. <strong>Missing Data.</strong> Next we will explore missing data in an EHR-derived data set. Suppose we want to use our T2DM phenotype from exercise 2 to explore the relationship between total cholesterol and T2DM diagnosis.</p>
 <ul>
 <li>Using mean cholesterol in the one year period after baseline as our exposure measure, how much missingness is there?</li>
 <li>Is missingness related to any other factors in the data set?</li>
 <li>Use IPW with a single module or multiple modules to account for missingness in your analysis of the association between total cholesterol and T2DM.</li>
 </ul>
-<p>B. <strong>Confounding by Utilization Intensity.</strong> Accounting for confounding due to variation in the intensity of healthcare utilization is important for EHR-based analyses.</p>
+<p>4. <strong>Confounding by Utilization Intensity.</strong> Accounting for confounding due to variation in the intensity of healthcare utilization is important for EHR-based analyses.</p>
 <ul>
 <li>How much variability is there in the intensity of utilization in this data set?</li>
 <li>Use a measure of intensity of utilization to account for informed presence bias in an analysis of the association between depression diagnosis and T2DM.</li>
 </ul>
-<p>C. <strong>Outcome Misclassification.</strong> For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and depression diagnosis.</p>
+<p>5. <strong>Outcome Misclassification.</strong> For binary phenotypes we can account for error in the phenotyping process using the classic Magder and Hughes approach. We will try out implementing this method in an analysis of the association between T2DM, using the CART-derived phenotype, and depression diagnosis.</p>
 <ul>
 <li>What is the crude odds ratios for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?</li>
 <li>Using logistic regression to adjust for demographic characteristics, what is the adjusted odds ratio for the association between T2DM (outcome) and having a depression diagnosis (exposure) with and without correction for outcome misclassification?</li>
 </ul>
-<p>D. <strong>Using Probabilistic Phenotypes.</strong> Finally, we will explore correcting for error in our phenotype using a continuous phenotype.</p>
+<p>6. <strong>Using Probabilistic Phenotypes.</strong> Finally, we will explore correcting for error in our phenotype using a continuous phenotype.</p>
 <ul>
 <li>Using predicted probabilities from your logistic regression-based phenotype derived in exercise 2, estimate the association between having a depression diagnosis code and T2DM.</li>
 <li>How do your results change if you use the bias correction approach described in lecture vs the uncorrected results?</li>
 </ul>
-</div>
 </div>
 
 
