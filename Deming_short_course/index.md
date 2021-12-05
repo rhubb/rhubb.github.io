@@ -12,17 +12,17 @@ Participants in the Deming conference tutorial should download all of the files 
 
 **[Schedule for the day](schedule.pdf)**
 
-**[Slides](IBS_SUSAN_Short_Course.pdf)**
+**[Slides](Deming_RWD_Tutorial.pdf)**
 
-**[References](EHR_Short_Course_References.pdf)**
+**[References](RWD_Tutorial_References.pdf)**
 
 **Materials for R tutorial**
 
-* [Exercises](EHR_ShortCourse_Tutorials.html)
+* [Exercises](RWD_R_Tutorial.html)
 
-* [Worked exercises](EHR_ShortCourse_Tutorials_Worked.html)
+* [Worked exercises](RWD_R_Tutorial_Worked.html)
 
-* [R code](EHR_Tutorial_Code.R)
+* [R code](RWD_R_Tutorial_Code.R)
 
 * Data sets
   * [Encounter data](/data/encounter.csv) 
