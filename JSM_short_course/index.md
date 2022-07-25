@@ -12,9 +12,9 @@ This short course is of interest to researchers without prior experience working
 ### COURSE MATERIALS
 
 
-Participants in the JSM 2021 Short Course "Practical Solutions for Working with Electronic Health Records Data" should download all of the files below.
+Participants in the JSM 2022 Short Course "Practical Solutions for Working with Electronic Health Records Data" should download all of the files below.
 
-**[Slides](JSM_Short_Course_2021.pdf)**
+**[Slides](JSM_Short_Course_2022.pdf)**
 
 **[References](JSM_Short_Course_References.pdf)**
 
