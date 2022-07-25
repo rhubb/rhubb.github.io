@@ -20,27 +20,26 @@ Participants in the JSM 2022 Short Course "Practical Solutions for Working with 
 
 ##### Materials for tutorials
 
-**Tutorials 1 and 2**
+**Tutorial 1**
 
-* [Tutorial](JSM_ShortCourse_Tutorial12.html)
+* [Tutorial](JSM_ShortCourse_Tutorial1.html)
 
-* [Tutorials with solutions](JSM_ShortCourse_Tutorial12_Solutions.html)
+* [Tutorials with solutions](JSM_ShortCourse_Tutorial1_Solutions.html)
 
-* [R code](JSM_ShortCourse_Tutorial12_Code.R)
-
-* Data sets
-  * [Case study 1 data](/data/case1.csv) 
-  * [Case study 2 data](/data/case2.csv)
-
-**Tutorial 3**
-
-* [Tutorial](JSM_ShortCourse_Tutorial3.html)
-
-* [Tutorials with solutions](JSM_ShortCourse_Tutorial3_Solutions.html)
-
-* [R code](JSM_ShortCourse_Tutorial3_Code.R)
+* [R code](JSM_ShortCourse_Tutorial1_Code.R)
 
 * Data sets
-  * [Case study 3 ODAL data](/data/case3_ODAL.csv) 
-  * [Case study 3 ODAC data](/data/case3_ODAC.csv)
-  * [Case study 3 ODAH data](/data/case3_ODAH.csv)
+  * [Tutorial 1 data](/data/case1.csv) 
+
+**Tutorial 2**
+
+* [Tutorial](JSM_ShortCourse_Tutorial2.html)
+
+* [Tutorials with solutions](JSM_ShortCourse_Tutorial2_Solutions.html)
+
+* [R code](JSM_ShortCourse_Tutorial2_Code.R)
+
+* Data sets
+  * [Tutorial 2 ODAL data](/data/case3_ODAL.csv) 
+  * [Tutorial 2 ODAC data](/data/case3_ODAC.csv)
+  * [Tutorial 2 ODAH data](/data/case3_ODAH.csv)
