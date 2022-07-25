@@ -1,4 +1,5 @@
-## R code for Extracting Real-World Evidence from Real-World Data R Tutorial
+## R code for JSM Short Course: Practical solutions for working with electronic health records data
+## Tutorial 1
 
 ##-------------------------------------------------------------##
 ## Read in data

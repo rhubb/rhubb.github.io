@@ -18,7 +18,7 @@ Participants in the JSM 2022 Short Course "Practical Solutions for Working with 
 
 **[References](JSM_Short_Course_References.pdf)**
 
-##### Materials for tutorials
+##### Material for tutorials
 
 **Tutorial 1**
 
@@ -29,7 +29,7 @@ Participants in the JSM 2022 Short Course "Practical Solutions for Working with 
 * [R code](JSM_ShortCourse_Tutorial1_Code.R)
 
 * Data sets
-  * [Tutorial 1 data](/data/case1.csv) 
+  * [Tutorial 1 data](/data/tutorial1.csv) 
 
 **Tutorial 2**
 
