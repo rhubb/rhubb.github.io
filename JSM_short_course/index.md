@@ -42,6 +42,6 @@ Participants in the JSM 2022 Short Course "Practical Solutions for Working with 
 * [R code](JSM_ShortCourse_Tutorial2_Code.R)
 
 * Data sets
-  * [Tutorial 2 ODAL data](/data/case3_ODAL.csv) 
-  * [Tutorial 2 ODAC data](/data/case3_ODAC.csv)
-  * [Tutorial 2 ODAH data](/data/case3_ODAH.csv)
+  * [Tutorial 2 ODAL data](/data/data_ODAL.csv) 
+  * [Tutorial 2 ODAC data](/data/data_ODAC.csv)
+  * [Tutorial 2 ODAH data](/data/data_ODAH.csv)
