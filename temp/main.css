@@ -14,11 +14,7 @@ a:hover {
 }
 
 #content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, -50%) ;
+    position: relative;
     text-align: left;
     max-width: 520px;
     padding: 32px;
