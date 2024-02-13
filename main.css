@@ -14,11 +14,10 @@ a:hover {
 }
 
 #content {
-    position: relative;
-    text-align: left;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
     max-width: 520px;
-    padding: 32px;
-    line-height: 1.6em;
 }
 
 .avatar {
