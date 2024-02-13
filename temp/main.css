@@ -19,7 +19,7 @@ a:hover {
     left: 50%;
     margin-right: -50%;
     transform: translate(-50%, -50%) ;
-    text-align: center;
+    text-align: left;
     max-width: 520px;
     padding: 32px;
     line-height: 1.6em;
